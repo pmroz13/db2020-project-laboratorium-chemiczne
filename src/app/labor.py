@@ -11,7 +11,7 @@ class Pracownik():
 
     def aktualizuj_stan_magazynu():
         print("Aktualizuj stan magazynu:")
-
+ 
     def dodaj_do_listy_zakupow():
         print("Dodawanie do listy zakupów:")
 
