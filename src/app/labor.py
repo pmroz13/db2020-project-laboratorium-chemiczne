@@ -1,3 +1,8 @@
+import os
+import sys
+#sys.path.insert(0,"C:\Users\Dell\AppData\Roaming\Python\Python37\site-packages")
+import pymysql
+
 class Pracownik():
 
     def __init__(self,id_pracownika):
@@ -31,16 +36,38 @@ class Administrator(Pracownik):
     def aktualizuj_dane_odbiorcow():
         print("Aktualizowanie danych odbiorców:")
 
-
 class Zwiazek_chemiczny():
     def _init_(self,id_zwiazku):
         self.id_zwiazku=id_zwiazku
+        self.__con = pymysql.connect('localhost', 'user', 'password', 'db.sql')
+        self.__cursor = self.__con.cursor()
 
     def wyswietl_infrmacje_chemiczne(id_zwiazku):
-        print("Informacje chemiczne:")
+        def wyswietlInformacjeChemiczne(self, id_zwiazku):
+            connection = polaczenie()
+            with connection.cursor() as cursor:
+                sql = f"SELECT nazwa_zwaizku, stan_skupienia, rodzaj_wiazania_w_zwiazku, temp_wrzenia, temp_topnienia, masa_molowa, pH, uwagi FROM info_o_zwiazku WHERE info_o_zwiazku.id_zwiazku=id_zwiazku; "
+                # self.__cursor.execute('SELECT nazwa_zwaizku, stan_skupienia, rodzaj_wiazania_w_zwiazku,'
+                #                     ' temp_wrzenia, temp_topnienia, masa_molowa, pH, uwagi FROM info_o_zwiazku'
+                #                     ' WHERE info_o_zwiazku.id_zwiazku=id_zwiazku')
+                # zwiazek = self.__cursor.fetchall()
+                cursor.execute(sql)
+                result = cursor.fetchall()
+            print('Nazwa zwiazku: {}')
+            print('Stan skupienia: {}')
+            print('Rodzaj wiazania w zwiazku: {}')
+            print('Temperatura wrzenia: {}')
+            print('Temperatura topnienia: {}')
+            print('Masa molowa: {}')
+            print('pH: {}')
+            print('Uwagi: {}')
 
-    def wyswietl_cene_i_stan(id_zwiazku):
-        print("Cena i stan:")
+    def wyswietlCeneIStan(self, id_zwiazku):
+        self.__cursor.execute('SELECT cena_za_gram, obecny_stan_w_magazynie FROM info_o_zwiazku WHERE info_o_zwiazku.id_zwiazku=id_zwiazku ')
+        cena = self.__cursor.fetchall()
+        print('Cena za gram: {}')
+        print('Obecna ilosc w magazynie: {}')
+
 
 class Magazyn():
 
