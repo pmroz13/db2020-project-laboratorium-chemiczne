@@ -71,11 +71,22 @@ class Zwiazek_chemiczny():
 
 class Magazyn():
 
-    def wyswietl_sprzet_lab():
-        print("Dostepny sptrzet:")
+    def __init__(self):
+        self.__con = pymysql.connect('localhost', 'user', 'password', 'db.sql')
+        self.__cursor = self.__con.cursor()
 
-    def wyswietl_dostepne_zwiazki():
-        print("Dostepne zwiazki:")
+    def wyswietl_sprzet_lab(self):
+        self.__cursor.execute('SELECT nazwa, ilosc, uwagi FROM sprzet_lab')
+        sprzet = self.__cursor.fetchall()
+        print('Nazwa: {}')
+        print('Ilosc w magazynie: {}')
+        print('Uwagi: {}')
+
+    def wyswietl_dostepne_zwiazki(self):
+        self.__cursor.execute('SELECT nazwa, obecny_stan_w_magazynie FROM info_o_zwiazku WHERE obecny_stan_w_magazynie > 0')
+        zwiazki = self.__cursor.fetchall()
+        for zwiazek in zwiazki:
+            print('Nazwa zwiazku: {}\nObecny stan w magazynie: {}\n\n')
 
 class Konto():
 
