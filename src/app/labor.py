@@ -14,14 +14,13 @@ class Pracownik():
     def rezerwuj_termin(id_pracownika):
         print("Rezerwacja terminu:")
 
-    def aktualizuj_stan_magazynu():
+    def aktualizuj_stan_magazynu(id_pracownika):
         print("Aktualizuj stan magazynu:")
 
-    def dodaj_do_listy_zakupow():
+    def dodaj_do_listy_zakupow(id_pracownika):
         print("Dodawanie do listy zakupów:")
 
-    def utworz_konto():
-        print("Tworzenie konta:")
+
 
 
 class Administrator(Pracownik):
@@ -75,10 +74,10 @@ class Konto():
         for haselko in haselka:
             if haselko[0]==haslo:
                 odpowiedz_bazy=2
-                print('22222')
+
             else:
                 odpowiedz_bazy=1
-                print('11111')
+
 
         if (odpowiedz_bazy == 1):
             print("Błędny login lub hasło. Jeśli nie pamiętasz hasła wybierz 1,"
@@ -96,11 +95,11 @@ class Konto():
                 if(admin==0):
                     global worker
                     worker=Pracownik(id_pracownika)
-                    wybieranie2(id_pracownika,admin)
+                    wybieranie2(id_pracownika)
                 else:
                     global adm
                     adm = Administrator(id_pracownika)
-                    wybieranie2(id_pracownika, admin)
+                    wybieranie2(id_pracownika)
 
             return 0
 
@@ -198,17 +197,74 @@ def wybieranie1(account):
         print("Wybrano zla wartosc, WYBIERZ OPCJĘ OD 1 do 4:")
         wybieranie1()
 
-def wybieranie2(id_pracownika, admin):
+def wybieranie2(id_pracownika):
+      #sprawdzenie czy osoba pod danym ID ma uprawnienia admina
+    query = "SELECT admin FROM pracownicy WHERE id_pracownika = {}".format(id_pracownika)
+    cursor.execute(query)
+    uprawnienia = cursor.fetchall()
+    for uprawnienie in uprawnienia:
+        admin=uprawnienie[0]
+
+        #Przywitanie po zalogowaniu
     query = "SELECT imie,nazwisko FROM pracownicy WHERE id_pracownika = {}".format(id_pracownika)
     cursor.execute(query)
     dane = cursor.fetchall()
     for (imie, nazwisko) in dane:
-        print("WITAJ "+imie+" "+nazwisko+"!!!")
+        print("WITAJ "+imie+" "+nazwisko)
+        print(
+            "1.Wyświetl informacje o sobie\n2.Zarezerwuj laboratorium"
+            "\n3.Aktualizuj stan magazynu\n4.Dodaj do listy zakupów\n5.Przejdz do magazynu")
+        if(admin==1):
+            print("###### FUNKCJE ADMINA ######\n6.Zatwierdz zakupy\n7.Aktualizuj dane pracownika"
+                  "\n8.Wyswietl wydatki\n9.Aktualizuj dane odbiorcow")
+        wybor=input("Wybór(wiekszosc wyrzuci blad narazie, 5 bezpieczna jak cos")
+        if (wybor == '1'):
+            if(admin==1):
+                adm.wyswietl_info_o_sobie(id_pracownika)
+            else:
+                worker.wyswietl_info_o_sobie(id_pracownika)
+        elif (wybor == '2'):
+            if (admin == 1):
+                adm.rezerwuj_termin(id_pracownika)
+            else:
+                worker.rezerwuj_termin(id_pracownika)
 
+        elif (wybor == '3'):
+            if (admin == 1):
+                adm.aktualizuj_stan_magazynu(id_pracownika)
+            else:
+                worker.aktualizuj_stan_magazynu(id_pracownika)
+        elif (wybor == '4'):
+            if (admin == 1):
+                adm.dodaj_do_listy_zakupow(id_pracownika)
+            else:
+                worker.dodaj_do_listy_zakupow(id_pracownika)
+        elif (wybor == '5'):
+            przejdz_do_magazynu(admin)
+        elif (wybor == '6'):
+            adm.nadzor_nad_lista_zakupow()
+        elif (wybor == '7'):
+            adm.aktualizuj_dane_pracownika()
+        elif (wybor == '8'):
+            adm.wyswietl_wydatki()
+        elif (wybor == '9'):
+            adm.aktualizuj_dane_odbiorcow()
 
+        else:
+            print("Błąd! Wybierz jedną z dostępnych opcji!")
+            wybieranie2(id_pracownika, admin)
 
+def przejdz_do_magazynu(admin):
+    print("##### MAGAZYN #####\n1.Wyswietl informacje chemiczne\n2.Wyswietl cene i stan"
+          "\n3.Wyswietl dostepny sprzet\n4.Wyswietl dostepne zwiazki\n5.Powrot do menu")
+    wybor=input("Wybor:")
+    print("To już Tobie zostawiam ;)")
 
-
+    if(wybor=='5'):
+        try:
+            wybieranie2(adm.id_pracownika)
+        except:
+            wybieranie2(worker.id_pracownika)
 
 main()
 
