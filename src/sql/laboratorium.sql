@@ -88,6 +88,84 @@ CREATE TABLE `wydatki` (
 -- --------------------------------------------------------
 
 --
+-- Struktura tabeli dla tabeli `info_o_zwiazku`
+--
+
+CREATE TABLE `info_o_zwiazku` (
+  `id_zwiazku` int(11) NOT NULL,
+  `wzor` varchar(20) COLLATE utf8_polish_ci DEFAULT NULL,
+  `nazwa_zwiazku` varchar(20) COLLATE utf8_polish_ci DEFAULT NULL,
+  `stan_skupienia` varchar(20) COLLATE utf8_polish_ci DEFAULT NULL,
+  `uwagi` varchar(300) COLLATE utf8_polish_ci DEFAULT NULL,
+  `cena_za_gram` float DEFAULT NULL,
+  `obecny_stan_w_magazynie` int(11) DEFAULT NULL,
+  `pH` int(5) DEFAULT NULL,
+  `rodzaj_wiazania_w_zwiazku` varchar(20) COLLATE utf8_polish_ci DEFAULT NULL,
+  `temp_wrzenia` float DEFAULT NULL,
+  `temp_topnienia` float DEFAULT NULL,
+  `masa_molowa` float DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
+
+--
+-- Zrzut danych tabeli `info_o_zwiazku`
+--
+
+INSERT INTO `info_o_zwiazku` (`id_zwiazku`, `wzor`, `nazwa_zwiazku`, `stan_skupienia`, `uwagi`, `cena_za_gram`, `obecny_stan_w_magazynie`, `pH`, `rodzaj_wiazania_w_zwiazku`, `temp_wrzenia`, `temp_topnienia`, `masa_molowa`) VALUES
+(1, 'H2O', 'woda', 'ciecz', 'taka fajna woda', 2, 100, 0, 'jakies napewno', 100, 30, 2),
+(2, 'HCl', 'kwas solny', 'jakis', 'silnie zracy', 19.84, 5, 0, 'jakies inne niz woda', 84, -43, 36.9);
+
+-- --------------------------------------------------------
+
+--
+-- Struktura tabeli dla tabeli `odbiorcy_odpadow_chemicznych`
+--
+
+CREATE TABLE `odbiorcy_odpadow_chemicznych` (
+  `nazwa_firmy` varchar(20) COLLATE utf8_polish_ci DEFAULT NULL,
+  `data_odbioru` date DEFAULT NULL,
+  `cena_za_wiaderko` float DEFAULT NULL,
+  `ilosc_odebranych_wiaderek` int(20) DEFAULT NULL,
+  `id_odbioru` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
+-- --------------------------------------------------------
+
+--
+-- Struktura tabeli dla tabeli `sprzet_lab`
+--
+
+CREATE TABLE `sprzet_lab` (
+  `id_sprzetu` int(11) NOT NULL,
+  `nazwa` varchar(20) COLLATE utf8_polish_ci DEFAULT NULL,
+  `ilosc` int(20) DEFAULT NULL,
+  `uwagi` varchar(300) COLLATE utf8_polish_ci DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
+
+--
+-- Zrzut danych tabeli `sprzet_lab`
+--
+
+INSERT INTO `sprzet_lab` (`id_sprzetu`, `nazwa`, `ilosc`, `uwagi`) VALUES
+(1, 'pipeta', 20, 'uwaga do pipety'),
+(2, 'probowka', 3, 'uwaga do probowki'),
+(3, 'szkielko', 0, 'uwaga do szkielka');
+
+-- --------------------------------------------------------
+
+--
+-- Struktura tabeli dla tabeli `zuzyte_zwiazki`
+--
+
+CREATE TABLE `zuzyte_zwiazki` (
+  `id_pracownika` int(20) DEFAULT NULL,
+  `id_zwiazku` int(20) DEFAULT NULL,
+  `data_zuzycia` date DEFAULT NULL,
+  `ilosc_zuzycia` float DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
+
+--
+-- --------------------------------------------------------
+
+--
 -- Struktura tabeli dla tabeli `zakupy`
 --
 
@@ -104,7 +182,34 @@ CREATE TABLE `zakupy` (
 --
 -- Indeksy dla zrzutów tabel
 --
+--
+-- Indeksy dla tabeli `info_o_zwiazku`
+--
+ALTER TABLE `info_o_zwiazku`
+  ADD PRIMARY KEY (`id_zwiazku`);
+--
+-- Indeksy dla tabeli `odbiorcy_odpadow_chemicznych`
+--
+ALTER TABLE `odbiorcy_odpadow_chemicznych`
+  ADD PRIMARY KEY (`id_odbioru`);
+--
+-- Indeksy dla tabeli `sprzet_lab`
+--
+ALTER TABLE `sprzet_lab`
+  ADD PRIMARY KEY (`id_sprzetu`);
 
+--
+-- Indeksy dla tabeli `zuzyte_zwiazki`
+--
+ALTER TABLE `zuzyte_zwiazki`
+  ADD KEY `id_pracownika` (`id_pracownika`),
+  ADD KEY `id_zwiazku` (`id_zwiazku`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
 --
 -- Indeksy dla tabeli `pracownicy`
 --
@@ -137,7 +242,18 @@ ALTER TABLE `zakupy`
 --
 -- AUTO_INCREMENT for dumped tables
 --
+--
+-- AUTO_INCREMENT dla tabeli `odbiorcy_odpadow_chemicznych`
+--
+ALTER TABLE `odbiorcy_odpadow_chemicznych`
+  MODIFY `id_odbioru` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT dla tabeli `sprzet_lab`
+--
+ALTER TABLE `sprzet_lab`
+  MODIFY `id_sprzetu` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
+--
 --
 -- AUTO_INCREMENT dla tabeli `pracownicy`
 --
@@ -156,6 +272,14 @@ ALTER TABLE `wydatki`
 ALTER TABLE `zakupy`
   MODIFY `id_zakupu` int(11) NOT NULL AUTO_INCREMENT;
 COMMIT;
+ALTER TABLE `zuzyte_zwiazki`
+  ADD CONSTRAINT `zuzyte_zwiazki_ibfk_1` FOREIGN KEY (`id_pracownika`) REFERENCES `pracownicy` (`id_pracownika`),
+  ADD CONSTRAINT `zuzyte_zwiazki_ibfk_2` FOREIGN KEY (`id_zwiazku`) REFERENCES `info_o_zwiazku` (`id_zwiazku`);
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
