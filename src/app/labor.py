@@ -73,26 +73,87 @@ class Administrator(Pracownik):
         print("Aktualizowanie danych odbiorców:")
 
 
+
+def IDzwiazku():
+    form = input("Wybierz format wyszukiwania zwiazku:\n1.Wzor zwiazku\n2.Nazwa zwiazku")
+    if (form == '1'):
+        wzor = input("Wpisz wzor zwiazku: ")
+        query = "SELECT id_zwiazku FROM info_o_zwiazku WHERE wzor='{}'".format(wzor)
+    elif (form == '2'):
+        nazwa_zwiazku = input("Wpisz nazwe zwiazku: ")
+        query = "SELECT id_zwiazku FROM info_o_zwiazku WHERE nazwa_zwiazku='{}'".format(nazwa_zwiazku)
+    cursor.execute(query)
+    id_zwiazku = cursor.fetchall()
+    for numer in id_zwiazku:
+        id_zwiazku = numer[0]
+    return id_zwiazku
+
 class Zwiazek_chemiczny():
-    def _init_(self, id_zwiazku):
-        self.id_zwiazku = id_zwiazku
+    def wyswietlInformacjeChemiczne(self):
+        id_zwiazku = IDzwiazku()
+        query = "SELECT nazwa_zwiazku, stan_skupienia, rodzaj_wiazania_w_zwiazku, temp_wrzenia, " \
+                "temp_topnienia, masa_molowa, pH , uwagi FROM info_o_zwiazku " \
+                "WHERE info_o_zwiazku.id_zwiazku='%d';"%(id_zwiazku)
+        cursor.execute(query)
+        zwiazek_chem = cursor.fetchall()
+        print("----------------------------")
+        for zwiazek in zwiazek_chem:
+             print("Nazwa zwiazku: ", zwiazek[0])
+             print("Stan skupienia: ", zwiazek[1])
+             print("Rodzaj wiazania w zwiazku: ", zwiazek[2])
+             print("Temperatura wrzenia: ", zwiazek[3])
+             print("Temperatura topnienia:  ", zwiazek[4])
+             print("Masa molowa: ", zwiazek[5])
+             print("pH: ", zwiazek[6])
+             print("Uwagi: ", zwiazek[7])
+        cursor.close()
+        #dodaj uwage lub wroc do menu
+        #notatka:
+        #data
+        #uwaga
+        #data
+        #uwaga
 
-    def wyswietl_infrmacje_chemiczne(id_zwiazku):
-        print("Informacje chemiczne:")
-
-    def wyswietl_cene_i_stan(id_zwiazku):
-        print("Cena i stan:")
+    def wyswietlCeneIStan(self):
+        id_zwiazku = IDzwiazku()
+        query = "SELECT nazwa_zwiazku, cena_za_gram, obecny_stan_w_magazynie " \
+                "FROM info_o_zwiazku WHERE info_o_zwiazku.id_zwiazku='%d';" % (id_zwiazku)
+        cursor.execute(query)
+        zwiazek_chem = cursor.fetchall()
+        print("----------------------------")
+        for zwiazek in zwiazek_chem:
+            print("Nazwa zwiazku: ", zwiazek[0])
+            print("Cena za gram: ", zwiazek[1],"zl")
+            print("Obecna ilosc w magazynie: ",zwiazek[2],"g")
+        cursor.close()
 
 
 class Magazyn():
+    def wyswietl_sprzet_lab(self):
+        query = "SELECT nazwa, ilosc, uwagi FROM sprzet_lab WHERE ilosc >0;"
+        cursor.execute(query)
+        sprzet_lab = cursor.fetchall()
+        print("----------------------------")
+        for sprzet in sprzet_lab:
+            print("Nazwa sprzetu: ", sprzet[0])
+            print("Obecna ilosc w magazynie: ", sprzet[1], " sztuk")
+            print("Uwagi: ", sprzet[2])
+            print("----")
+        cursor.close()
 
-    def wyswietl_sprzet_lab():
-        print("Dostepny sptrzet:")
-
-    def wyswietl_dostepne_zwiazki():
-        print("Dostepne zwiazki:")
-
-
+    def wyswietl_dostepne_zwiazki(self):
+        ilosc = int(0)
+        query = "SELECT nazwa_zwiazku, obecny_stan_w_magazynie FROM info_o_zwiazku " \
+                "WHERE info_o_zwiazku.obecny_stan_w_magazynie>0;"
+        cursor.execute(query)
+        dostepne_zwiazki = cursor.fetchall()
+        print("----------------------------")
+        for zwiazek in dostepne_zwiazki:
+            print("Nazwa sprzetu: ", zwiazek[0])
+            print("Obecna ilosc w magazynie: ", zwiazek[1], " g")
+            print("----")
+        cursor.close()
+        
 class Konto():
 
     def zaloguj(account):
@@ -299,8 +360,9 @@ def przejdz_do_magazynu(admin):
         except:
             wybieranie2(worker.id_pracownika)
 
-main()
 
+if __name__ == "__main__":
+    main()
 
 
 
