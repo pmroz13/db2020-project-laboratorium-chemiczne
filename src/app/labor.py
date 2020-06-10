@@ -8,8 +8,37 @@ class Pracownik():
     def __init__(self, id_pracownika):
         self.id_pracownika = id_pracownika
 
-    def wyswietl_info_o_sobie(id_pracownika):
-        print("Informacje:")
+     def wyswietl_info_o_sobie(self, id_pracownika): 
+        print("Twoje podstawowe informacje:\n")
+        query = "SELECT imie, nazwisko FROM pracownicy WHERE pracownicy.id_pracownika ='%d';"%(id_pracownika)
+        cursor.execute(query)
+        dane = cursor.fetchall()
+        print("----------------------------")
+        for dana in dane:
+            print("Twoje imie: ", dana[0])
+            print("Twoje nazwisko: ", dana[1])
+
+        petla = True #wszystko
+        while petla: #data i godzina
+            wybor = input("Co chcesz wyswietlic?\n1.Numer konta bankowego\n2.Swoja pensje\n3.Swoj adres\n4.Date zatrudnienia\n")
+            if (wybor == '1'):
+                query = "SELECT numer_konta FROM pracownicy WHERE pracownicy.id_pracownika ='%d';"%(id_pracownika)
+            elif (wybor == '2'):
+                query = "SELECT pensja FROM pracownicy WHERE pracownicy.id_pracownika ='%d';" % (id_pracownika)
+            elif (wybor == '3'):
+                query = "SELECT adres FROM pracownicy WHERE pracownicy.id_pracownika ='%d';" % (id_pracownika)
+            elif (wybor == '4'):
+                query = "SELECT data_zatrudnienia FROM pracownicy WHERE pracownicy.id_pracownika ='%d';" % (id_pracownika)
+            cursor.execute(query)
+            dane = cursor.fetchall()
+            for dana in dane:
+                print(dana[0])
+                print("----------------------------")
+            dalej = input("Czy chcesz dalej wyswietlac? T/N: ")
+            dalej = dalej.upper()
+            if (dalej == 'N'):
+                petla = False
+        cursor.close()
 
     def rezerwuj_termin(id_pracownika):
         print("Rezerwacja terminu:")
