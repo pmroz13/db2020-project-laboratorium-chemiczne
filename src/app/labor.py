@@ -27,11 +27,15 @@ class Administrator(Pracownik):
     def _init_(self, id_pracownika):
         super()._init_(id_pracownika)
 
-    def nadzor_nad_lista_zakupow():
+    def nadzor_nad_lista_zakupow(self):
         print("Zarządzanie lista zakupów")
 
-    def aktualizuj_dane_pracownika():
+    def aktualizuj_dane_pracownika(self):
         print("Zmień dane pracownika")
+        query = "SELECT * FROM pracownicy"
+        cursor.execute(query)
+        for (id) in cursor:
+            print("{}".format(id));
 
     def wyswietl_wydatki():
         print("Wydatki:")
