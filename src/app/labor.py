@@ -351,11 +351,11 @@ class Magazyn():
     def wyswietl_dostepne_zwiazki(self):
         dec = input("Wybierz ktora opcje chceszy wyswietlic:\n1. Dostepne zwazki\n"
                     "2. Brakujace zwiazki\n3. Wszystkie zwiazki znajdujace sie w bazie ")
-        if (dec == 1):
+        if (dec == '1'):
             query = "SELECT nazwa_zwiazku, obecny_stan_w_magazynie FROM info_o_zwiazku WHERE info_o_zwiazku.obecny_stan_w_magazynie>0;"
-        elif(dec == 2):
+        elif(dec == '2'):
             query = "SELECT nazwa_zwiazku, obecny_stan_w_magazynie FROM info_o_zwiazku WHERE info_o_zwiazku.obecny_stan_w_magazynie=0;"
-        elif(dec == 3):
+        elif(dec == '3'):
             query = "SELECT nazwa_zwiazku, obecny_stan_w_magazynie FROM info_o_zwiazku;"
         else:
             print("Wybrales zla opcje\n")
