@@ -1,15 +1,14 @@
 import mysql.connector
+import datetime
 from mysql.connector import errorcode
 import time
-import pymysql
-import datetime
 
 class Pracownik():
 
     def __init__(self,id_pracownika):
         self.id_pracownika = id_pracownika
 
-    def wyswietl_info_o_sobie(self, id_pracownika):                                                             
+    def wyswietl_info_o_sobie(self, id_pracownika):
         query = "SELECT haslo FROM pracownicy WHERE pracownicy.id_pracownika ='%d';"%(id_pracownika)
         cursor.execute(query)
         hasloSQL = cursor.fetchall()
@@ -37,40 +36,85 @@ class Pracownik():
                     print("Godzina zakonczenia pracy: ", dana[8])
                     print("Twoj login: ", dana[9])
                     print("Twoj e-mail: ", dana[10])
-                    if (dana[12] == True):
+                    if (dana[11] == True):
                         print("Posiadasz uprawnienia administratora")
                     else:
                         print("Nie posiadasz uprawnien administratora")
-                zmiana = input("Czy chcesz zmienic swoje haslo? T/N ")
-                zmiana = zmiana.upper()
-                if (zmiana == 'T'):
-                    petla1 = True
-                    while(petla1):
-                        hasloStare = input("Podaj stare haslo:\n")
-                        query = "SELECT haslo FROM pracownicy WHERE id_pracownika = '{}'".format(id_pracownika)
-                        cursor.execute(query)
-                        hasloSQL = cursor.fetchall()
-                        for h in hasloSQL:
-                            hasloSQL = h[0]
-                        if (hasloStare == hasloSQL):
-                            nowe1 = input("Podaj nowe haslo\n")
-                            nowe2 = input("Powtorz nowe haslo\n")
-                            petla = True
-                            while (petla):
-                                if (nowe1 == nowe2):
-                                    query = "UPDATE pracownicy SET haslo='{}' WHERE id_pracownika='{}'".format(nowe1, id_pracownika)
-                                    cursor.execute(query)
-                                    mydb.commit()
-                                    petla = False
+
+                while True:
+                    print("Wybierz co chcesz zmienić\n1.Imie\n2.Nazwisko\n3.Numer konta\n4.Adres\n"
+                          "5.login\n6.haslo\n 7.email")
+                    wybor2 = input("Wybór:")
+                    if (wybor2 != '6'):
+                        zmienna = input('Na jakaką wartość chcesz zmienić wybraną zmienną:')
+                    if (wybor2 == '1'):
+                        temp1 = 'imie'
+                    elif (wybor2 == '2'):
+                        temp1 = 'nazwisko'
+                    elif (wybor2 == '3'):
+                        temp1 = 'numer_konta'
+                    elif (wybor2 == '4'):
+                        temp1 = 'adres'
+                    elif (wybor2 == '5'):
+                        temp1 = 'login'
+                    elif (wybor2 == '6'):
+                        zmiana = input("Czy chcesz zmienic swoje haslo? T/N ")
+                        zmiana = zmiana.upper()
+                        if (zmiana == 'T'):
+                            petla1 = True
+                            while (petla1):
+                                hasloStare = input("Podaj stare haslo:\n")
+                                query = "SELECT haslo FROM pracownicy WHERE id_pracownika = '{}'".format(id_pracownika)
+                                cursor.execute(query)
+                                hasloSQL = cursor.fetchall()
+                                for h in hasloSQL:
+                                    hasloSQL = h[0]
+                                if (hasloStare == hasloSQL):
+                                    nowe1 = input("Podaj nowe haslo\n")
+                                    nowe2 = input("Powtorz nowe haslo\n")
+                                    petla = True
+                                    while (petla):
+                                        if (nowe1 == nowe2):
+                                            query = "UPDATE pracownicy SET haslo='{}' WHERE id_pracownika='{}'".format(
+                                                nowe1, id_pracownika)
+                                            cursor.execute(query)
+                                            mydb.commit()
+                                            petla = False
+                                        else:
+                                            print("Podano dwa rozne hasla")
+                                    petla1 = False
                                 else:
-                                    print("Podano dwa rozne hasla")
-                            petla1 = False
-                        else:
-                            print("Podano nieprawidlowe haslo\n")
-                            menu = input("Kontynuujesz zmiane hasla\nChcesz wrocic do glownego menu? T/N\n")
-                            menu - menu.upper()
-                            if(menu == 'T'):
-                                petla1 = False
+                                    print("Podano nieprawidlowe haslo\n")
+                                    menu = input("Kontynuujesz zmiane hasla\nChcesz wrocic do glownego menu? T/N\n")
+                                    menu - menu.upper()
+                                    if (menu == 'T'):
+                                        petla1 = False
+
+                    elif (wybor2 == '7'):
+                        temp1 = 'email'
+                    else:
+                        wybieranie2(adm.id_pracownika)
+                    if (wybor2 != '6'):
+                        try:
+                            query = "UPDATE pracownicy SET {}={} WHERE id_pracownika={}".format(temp1, zmienna,
+                                                                                                id_pracownika)
+                            cursor.execute(query)
+                            mydb.commit()
+                            print('Dokonano zmian!')
+                        except:
+                            query = "UPDATE pracownicy SET {}='{}' WHERE id_pracownika={}".format(temp1, zmienna,
+                                                                                                  id_pracownika)
+                            cursor.execute(query)
+                            mydb.commit()
+                            print('Dokonano zmian!')
+
+                    wybor3 = input('1.Zmien inne wartości 2.Powrót do MENU:')
+                    if (wybor3 == '1'):
+                        print('')
+                    else:
+                        wybieranie2(id_pracownika)
+
+
             else:
                 temp = input("Podales zle haslo\n1. Sprobuj ponownie\n2. Wroc do glownego menu")
                 if (temp == '1'):
@@ -82,7 +126,7 @@ class Pracownik():
     def rezerwuj_termin(self, id_pracownika):
         print("Rezerwacja terminu:")
 
-      def aktualizuj_stan_magazynu(self, id_pracownika):
+    def aktualizuj_stan_magazynu(self, id_pracownika):
         petla0 = True
         while(petla0):
             rodzaj = input("\nAktualizujesz stan magazynu\nWybierz co chesz zaktualizowac\n"
@@ -246,7 +290,7 @@ def IDzwiazku():
 
 
 
-class Zwiazek_chemiczny():                                                                                      
+class Zwiazek_chemiczny():
     def wyswietlInformacjeChemiczne(self):
         id_zwiazku = IDzwiazku()
         query = "SELECT nazwa_zwiazku, stan_skupienia, rodzaj_wiazania_w_zwiazku, temp_wrzenia, " \
@@ -513,7 +557,7 @@ def wybieranie2(id_pracownika):
             wybieranie2(id_pracownika, admin)
 
 
-def przejdz_do_magazynu(admin):                                               
+def przejdz_do_magazynu(admin):
     print("\n##### MAGAZYN #####\n1.Wyswietl informacje chemiczne\n2.Wyswietl cene i stan"
           "\n3.Wyswietl dostepny sprzet\n4.Wyswietl dostepne zwiazki\n5.Powrot do menu\n")
     wybor = input("Wybor: ")
