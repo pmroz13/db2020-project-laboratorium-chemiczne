@@ -1,4 +1,5 @@
 import mysql.connector
+import datetime
 from mysql.connector import errorcode
 import time
 
@@ -8,9 +9,9 @@ class Pracownik():
     def __init__(self, id_pracownika):
         self.id_pracownika = id_pracownika
 
-     def wyswietl_info_o_sobie(self, id_pracownika): 
+    def wyswietl_info_o_sobie(self, id_pracownika):
         print("Twoje podstawowe informacje:\n")
-        query = "SELECT imie, nazwisko FROM pracownicy WHERE pracownicy.id_pracownika ='%d';"%(id_pracownika)
+        query = "SELECT imie, nazwisko FROM pracownicy WHERE pracownicy.id_pracownika ='%d';" % (id_pracownika)
         cursor.execute(query)
         dane = cursor.fetchall()
         print("----------------------------")
@@ -18,26 +19,89 @@ class Pracownik():
             print("Twoje imie: ", dana[0])
             print("Twoje nazwisko: ", dana[1])
 
-        petla = True #wszystko
-        while petla: #data i godzina
-            wybor = input("Co chcesz wyswietlic?\n1.Numer konta bankowego\n2.Swoja pensje\n3.Swoj adres\n4.Date zatrudnienia\n")
+        petla = True  # wszystko
+        while petla:  # data i godzina
+            wybor = input(
+                "Co chcesz wyswietlic?\n1.Numer konta bankowego\n2.Swoja pensje\n3.Swoj adres\n4.Date zatrudnienia\n")
             if (wybor == '1'):
-                query = "SELECT numer_konta FROM pracownicy WHERE pracownicy.id_pracownika ='%d';"%(id_pracownika)
+                query = "SELECT numer_konta FROM pracownicy WHERE pracownicy.id_pracownika ='%d';" % (id_pracownika)
             elif (wybor == '2'):
                 query = "SELECT pensja FROM pracownicy WHERE pracownicy.id_pracownika ='%d';" % (id_pracownika)
             elif (wybor == '3'):
                 query = "SELECT adres FROM pracownicy WHERE pracownicy.id_pracownika ='%d';" % (id_pracownika)
             elif (wybor == '4'):
-                query = "SELECT data_zatrudnienia FROM pracownicy WHERE pracownicy.id_pracownika ='%d';" % (id_pracownika)
+                query = "SELECT data_zatrudnienia FROM pracownicy WHERE pracownicy.id_pracownika ='%d';" % (
+                    id_pracownika)
             cursor.execute(query)
             dane = cursor.fetchall()
             for dana in dane:
                 print(dana[0])
                 print("----------------------------")
-            dalej = input("Czy chcesz dalej wyswietlac? T/N: ")
+            dalej = input("Czy chcesz dalej wyswietlac? T/N/Z: ")
             dalej = dalej.upper()
             if (dalej == 'N'):
                 petla = False
+            elif(dalej.upper()=='Z' ):
+                while True:
+                    print("Wybierz co chcesz zmienić\n1.Imie\n2.Nazwisko\n3.Numer konta\n4.Adres\n"
+                          "5.login\n6.haslo\n 7.email")
+                    wybor2 = input("Wybór:")
+                    if (wybor2 != '6'):
+                        zmienna = input('Na jakaką wartość chcesz zmienić wybraną zmienną:')
+                    if (wybor2 == '1'):
+                        temp1 = 'imie'
+                    elif (wybor2 == '2'):
+                        temp1 = 'nazwisko'
+                    elif (wybor2 == '3'):
+                        temp1 = 'numer_konta'
+                    elif (wybor2 == '4'):
+                        temp1 = 'adres'
+                    elif (wybor2 == '5'):
+                        temp1 = 'login'
+                    elif (wybor2 == '6'):
+                        temp1='haslo'
+                        starehaslo=input("Podaj stare haslo:")
+                        query = "SELECT haslo FROM pracownicy WHERE id_pracownika = {}".format(id_pracownika)
+                        cursor.execute(query)
+                        haselka = cursor.fetchall()
+                        odpowiedz_bazy = 1
+                        for haselko in haselka:
+                            if haselko[0] == starehaslo:
+                                nowehaslo = input("Podaj nowe haslo:")
+                                nowehaslo2 = input("Powtórz nowe haslo:")
+                                query = "UPDATE pracownicy SET {}='{}' WHERE id_pracownika={}".format(temp1,nowehaslo,id_pracownika)
+                                cursor.execute(query)
+                                mydb.commit()
+                                print('Dokonano zmian!')
+
+
+                            else:
+                                print("Podano błędne hasło!")
+                    elif (wybor2 == '7'):
+                        temp1 = 'email'
+                    else:
+                        wybieranie2(adm.id_pracownika)
+                    if (wybor2 != '6'):
+                        try:
+                            query = "UPDATE pracownicy SET {}={} WHERE id_pracownika={}".format(temp1, zmienna, id_pracownika)
+                            cursor.execute(query)
+                            mydb.commit()
+                            print('Dokonano zmian!')
+                        except:
+                            query = "UPDATE pracownicy SET {}='{}' WHERE id_pracownika={}".format(temp1, zmienna, id_pracownika)
+                            cursor.execute(query)
+                            mydb.commit()
+                            print('Dokonano zmian!')
+
+                    wybor3 = input('1.Zmien inne wartości 2.Powrót do MENU:')
+                    if (wybor3 == '1'):
+                        print('')
+                    else:
+                        wybieranie2(id_pracownika)
+
+
+
+
         cursor.close()
 
     def rezerwuj_termin(id_pracownika):
@@ -50,28 +114,110 @@ class Pracownik():
         print("Dodawanie do listy zakupów:")
 
 
-
-
 class Administrator(Pracownik):
     def _init_(self, id_pracownika):
         super()._init_(id_pracownika)
 
     def nadzor_nad_lista_zakupow(self):
         print("Zarządzanie lista zakupów")
+    def wyplac_pensje(self):
+        query = "SELECT SUM(pensja) FROM pracownicy"
+        cursor.execute(query)
+        pensja=cursor.fetchall()
+        print("Czy chcesz wypłacić pensję wszystkim pracownikom? Koszt operacji to: {} zł".format(pensja))#JAK ZROBIĆ BEZ DECIMAL??????
+        wybor=input("T/N?:")
+        if(wybor.upper()=='T'):
+            print("przenoszenie tego wszystkiego do tablicy wydatkow")
+        else:
+            wybieranie2(adm.id_pracownika)
 
     def aktualizuj_dane_pracownika(self):
         print("Zmień dane pracownika")
         query = "SELECT * FROM pracownicy"
         cursor.execute(query)
+        print("Lista Pracowników:")
         for (id) in cursor:
-            print("{}".format(id));
+            print("{}".format(id))
+        szukana = input("Wyszukaj pracownika:")
+        query = "SELECT * FROM pracownicy WHERE imie LIKE '{}' OR nazwisko LIKE '{}' OR stanowisko LIKE '{}' OR login LIKE '{}'".format(
+            szukana, szukana, szukana, szukana)
+        cursor.execute(query)
+        for (id) in cursor:
+            print("{}".format(id))
+
+        wybor = input("Wprowadz ID pracownika, któremu chcesz zmienić dane lub zapłacić pieniądze, lub M jeśli chcesz wrócić do MENU:")
+        if (wybor == 'M' or wybor == 'm'):
+            wybieranie2(adm.id_pracownika)
+        else:
+            while True:
+                print("Wybierz co chcesz zmienić\n1.Imie\n2.Nazwisko\n3.Numer konta\n4.Pensję\n5.Adres"
+                      "\n6.Godzinę rozpoczęcia pracy\n7.Godzinę zakończenia pracy\n8.stanowisko\n9.login\n10.haslo"
+                      "\n11.email\n12.Nadaj uprawnienia administratora\n13.Zapłać")
+                wybor2 = input("Wybór:")
+                if (wybor2 != '12' and wybor2 != '13'):
+                    zmienna = input('Na jakaką wartość chcesz zmienić wybraną zmienną:')
+
+                if (wybor2 == '1'):
+                    temp1 = 'imie'
+                elif (wybor2 == '2'):
+                    temp1 = 'nazwisko'
+                elif (wybor2 == '3'):
+                    temp1 = 'numer_konta'
+                elif (wybor2 == '4'):
+                    temp1 = 'pensja'
+                elif (wybor2 == '5'):
+                    temp1 = 'adres'
+                elif (wybor2 == '6'):
+                    temp1 = 'godzina_rozpoczecia_pracy'
+                elif (wybor2 == '7'):
+                    temp1 = 'godzina_zakonczenia_pracy'
+                elif (wybor2 == '8'):
+                    temp1 = 'stanowisko'
+                elif (wybor2 == '9'):
+                    temp1 = 'login'
+                elif (wybor2 == '10'):
+                    temp1 = 'haslo'
+                elif (wybor2 == '11'):
+                    temp1 = 'email'
+                elif (wybor2 == '12'):
+                    query = "UPDATE pracownicy SET admin=1 WHERE id_pracownika={}".format(wybor)
+                    cursor.execute(query)
+                    mydb.commit()
+                    print('Nadano uprawnienia administratora!')
+                elif (wybor2 == '13'):
+                    kwota=input("Wpisz kwotę, którą chcesz mu zapłacić:")
+                    if(kwota!='0'):
+                        print("dodawanie do historii wydatkow")
+
+                else:
+                    wybieranie2(adm.id_pracownika)
+                if (wybor2 != '12' and wybor2 != '13'):
+                    try:
+                        query = "UPDATE pracownicy SET {}={} WHERE id_pracownika={}".format(temp1, zmienna, wybor)
+                        cursor.execute(query)
+                        mydb.commit()
+                        print('Dokonano zmian!')
+                    except:
+                        query = "UPDATE pracownicy SET {}='{}' WHERE id_pracownika={}".format(temp1, zmienna, wybor)
+                        cursor.execute(query)
+                        mydb.commit()
+                        print('Dokonano zmian!')
+
+                wybor3 = input('1.Kontynuuj zarządzanie 2.Powrót do MENU:')
+                if (wybor3 == '1'):
+                    print('')
+                else:
+                    wybieranie2(adm.id_pracownika)
+
+
+
+
 
     def wyswietl_wydatki():
         print("Wydatki:")
 
     def aktualizuj_dane_odbiorcow():
         print("Aktualizowanie danych odbiorców:")
-
 
 
 def IDzwiazku():
@@ -88,31 +234,32 @@ def IDzwiazku():
         id_zwiazku = numer[0]
     return id_zwiazku
 
+
 class Zwiazek_chemiczny():
     def wyswietlInformacjeChemiczne(self):
         id_zwiazku = IDzwiazku()
         query = "SELECT nazwa_zwiazku, stan_skupienia, rodzaj_wiazania_w_zwiazku, temp_wrzenia, " \
                 "temp_topnienia, masa_molowa, pH , uwagi FROM info_o_zwiazku " \
-                "WHERE info_o_zwiazku.id_zwiazku='%d';"%(id_zwiazku)
+                "WHERE info_o_zwiazku.id_zwiazku='%d';" % (id_zwiazku)
         cursor.execute(query)
         zwiazek_chem = cursor.fetchall()
         print("----------------------------")
         for zwiazek in zwiazek_chem:
-             print("Nazwa zwiazku: ", zwiazek[0])
-             print("Stan skupienia: ", zwiazek[1])
-             print("Rodzaj wiazania w zwiazku: ", zwiazek[2])
-             print("Temperatura wrzenia: ", zwiazek[3])
-             print("Temperatura topnienia:  ", zwiazek[4])
-             print("Masa molowa: ", zwiazek[5])
-             print("pH: ", zwiazek[6])
-             print("Uwagi: ", zwiazek[7])
+            print("Nazwa zwiazku: ", zwiazek[0])
+            print("Stan skupienia: ", zwiazek[1])
+            print("Rodzaj wiazania w zwiazku: ", zwiazek[2])
+            print("Temperatura wrzenia: ", zwiazek[3])
+            print("Temperatura topnienia:  ", zwiazek[4])
+            print("Masa molowa: ", zwiazek[5])
+            print("pH: ", zwiazek[6])
+            print("Uwagi: ", zwiazek[7])
         cursor.close()
-        #dodaj uwage lub wroc do menu
-        #notatka:
-        #data
-        #uwaga
-        #data
-        #uwaga
+        # dodaj uwage lub wroc do menu
+        # notatka:
+        # data
+        # uwaga
+        # data
+        # uwaga
 
     def wyswietlCeneIStan(self):
         id_zwiazku = IDzwiazku()
@@ -123,8 +270,8 @@ class Zwiazek_chemiczny():
         print("----------------------------")
         for zwiazek in zwiazek_chem:
             print("Nazwa zwiazku: ", zwiazek[0])
-            print("Cena za gram: ", zwiazek[1],"zl")
-            print("Obecna ilosc w magazynie: ",zwiazek[2],"g")
+            print("Cena za gram: ", zwiazek[1], "zl")
+            print("Obecna ilosc w magazynie: ", zwiazek[2], "g")
         cursor.close()
 
 
@@ -153,7 +300,8 @@ class Magazyn():
             print("Obecna ilosc w magazynie: ", zwiazek[1], " g")
             print("----")
         cursor.close()
-        
+
+
 class Konto():
 
     def zaloguj(account):
@@ -163,15 +311,14 @@ class Konto():
 
         query = "SELECT haslo FROM pracownicy WHERE login = '{}'".format(nick)
         cursor.execute(query)
-        haselka=cursor.fetchall()
-        odpowiedz_bazy=1
+        haselka = cursor.fetchall()
+        odpowiedz_bazy = 1
         for haselko in haselka:
-            if haselko[0]==haslo:
-                odpowiedz_bazy=2
+            if haselko[0] == haslo:
+                odpowiedz_bazy = 2
 
             else:
-                odpowiedz_bazy=1
-
+                odpowiedz_bazy = 1
 
         if (odpowiedz_bazy == 1):
             print("Błędny login lub hasło. Jeśli nie pamiętasz hasła wybierz 1,"
@@ -185,10 +332,10 @@ class Konto():
             query = "SELECT id_pracownika,admin FROM pracownicy WHERE login = '{}'".format(nick)
             cursor.execute(query)
             dane = cursor.fetchall()
-            for (id_pracownika,admin) in dane:
-                if(admin==0):
+            for (id_pracownika, admin) in dane:
+                if (admin == 0):
                     global worker
-                    worker=Pracownik(id_pracownika)
+                    worker = Pracownik(id_pracownika)
                     wybieranie2(id_pracownika)
                 else:
                     global adm
@@ -212,7 +359,6 @@ class Konto():
             print('Podany login jest juz zajety, wybierz inny')
             account.zarejestruj()
 
-
         imie = input("Imie: ")
         nazwisko = input("Nazwisko: ")
         adres = input("Adres(Kod pocztowy, Miejscowość, Ulica, nr mieszkania): ")
@@ -220,13 +366,11 @@ class Konto():
 
         print("Teraz dodajemy konto do bazy danych")
         query = "INSERT INTO pracownicy SET imie='{}', nazwisko='{}',adres='{}',numer_konta='{}',login='{}',haslo='{}',\
-                email='{}'".format(imie,nazwisko,adres,numer_konta,login,haslo,email)
+                email='{}'".format(imie, nazwisko, adres, numer_konta, login, haslo, email)
         cursor.execute(query)
         mydb.commit()
         print("Pomyślnie utworzono konto!!!")
         wybieranie1(account)
-
-
 
     def resetuj_haslo(account):
         print("******Resetowanie hasła******")
@@ -236,13 +380,13 @@ class Konto():
         cursor.execute(query)
         emejle = cursor.fetchall()
         if emejle:
-            print('Na adres '+email+' zostal wyslany KOD, ktory należy wpisać, aby zresetować hasło'
-                  '(domyslny kod to 1234)')
-            kod=input("Wprowadz kod:")
-            if(kod=='1234'):
-                nowehaslo=input("Wprowadz teraz nowe haslo do konta:")
-                nowehaslo2=input("Powtórz hasło:")
-                query = "UPDATE pracownicy SET haslo='{}' WHERE email='{}'".format(nowehaslo,email)
+            print('Na adres ' + email + ' zostal wyslany KOD, ktory należy wpisać, aby zresetować hasło'
+                                        '(domyslny kod to 1234)')
+            kod = input("Wprowadz kod:")
+            if (kod == '1234'):
+                nowehaslo = input("Wprowadz teraz nowe haslo do konta:")
+                nowehaslo2 = input("Powtórz hasło:")
+                query = "UPDATE pracownicy SET haslo='{}' WHERE email='{}'".format(nowehaslo, email)
                 cursor.execute(query)
                 mydb.commit()
             else:
@@ -255,13 +399,8 @@ class Konto():
             wybieranie1(account)
 
 
-
-
-
-
 # /////////////////////Funkcje/////////////////
 def main():
-
     # odczyt
     global mydb
     mydb = mysql.connector.connect(host="localhost", user="root", passwd="", database="laboratorium")
@@ -269,9 +408,6 @@ def main():
     cursor = mydb.cursor()
     account = Konto()
     wybieranie1(account)
-
-
-
 
 
 def wybieranie1(account):
@@ -291,29 +427,30 @@ def wybieranie1(account):
         print("Wybrano zla wartosc, WYBIERZ OPCJĘ OD 1 do 4:")
         wybieranie1()
 
+
 def wybieranie2(id_pracownika):
-      #sprawdzenie czy osoba pod danym ID ma uprawnienia admina
+    # sprawdzenie czy osoba pod danym ID ma uprawnienia admina
     query = "SELECT admin FROM pracownicy WHERE id_pracownika = {}".format(id_pracownika)
     cursor.execute(query)
     uprawnienia = cursor.fetchall()
     for uprawnienie in uprawnienia:
-        admin=uprawnienie[0]
+        admin = uprawnienie[0]
 
-        #Przywitanie po zalogowaniu
+        # Przywitanie po zalogowaniu
     query = "SELECT imie,nazwisko FROM pracownicy WHERE id_pracownika = {}".format(id_pracownika)
     cursor.execute(query)
     dane = cursor.fetchall()
     for (imie, nazwisko) in dane:
-        print("WITAJ "+imie+" "+nazwisko)
+        print("WITAJ " + imie + " " + nazwisko)
         print(
             "1.Wyświetl informacje o sobie\n2.Zarezerwuj laboratorium"
             "\n3.Aktualizuj stan magazynu\n4.Dodaj do listy zakupów\n5.Przejdz do magazynu")
-        if(admin==1):
+        if (admin == 1):
             print("###### FUNKCJE ADMINA ######\n6.Zatwierdz zakupy\n7.Aktualizuj dane pracownika"
                   "\n8.Wyswietl wydatki\n9.Aktualizuj dane odbiorcow")
-        wybor=input("Wybór(wiekszosc wyrzuci blad narazie, 5 bezpieczna jak cos")
+        wybor = input("Wybór(wiekszosc wyrzuci blad narazie, 5 bezpieczna jak cos")
         if (wybor == '1'):
-            if(admin==1):
+            if (admin == 1):
                 adm.wyswietl_info_o_sobie(id_pracownika)
             else:
                 worker.wyswietl_info_o_sobie(id_pracownika)
@@ -343,18 +480,23 @@ def wybieranie2(id_pracownika):
             adm.wyswietl_wydatki()
         elif (wybor == '9'):
             adm.aktualizuj_dane_odbiorcow()
+        elif (wybor == '10'):
+            adm.wyplac_pensje()
 
         else:
             print("Błąd! Wybierz jedną z dostępnych opcji!")
             wybieranie2(id_pracownika, admin)
 
+
 def przejdz_do_magazynu(admin):
     print("##### MAGAZYN #####\n1.Wyswietl informacje chemiczne\n2.Wyswietl cene i stan"
           "\n3.Wyswietl dostepny sprzet\n4.Wyswietl dostepne zwiazki\n5.Powrot do menu")
-    wybor=input("Wybor:")
+    wybor = input("Wybor:")
     print("To już Tobie zostawiam ;)")
 
-    if(wybor=='5'):
+
+
+    if (wybor == '5'):
         try:
             wybieranie2(adm.id_pracownika)
         except:
