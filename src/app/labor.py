@@ -1,7 +1,8 @@
 import mysql.connector
-import datetime
 from mysql.connector import errorcode
 import time
+import pymysql
+import datetime
 
 class Pracownik():
 
@@ -43,7 +44,7 @@ class Pracownik():
 
                 while True:
                     print("Wybierz co chcesz zmienić\n1.Imie\n2.Nazwisko\n3.Numer konta\n4.Adres\n"
-                          "5.login\n6.haslo\n 7.email")
+                          "5.login\n6.haslo\n 7.email\n")
                     wybor2 = input("Wybór:")
                     if (wybor2 != '6'):
                         zmienna = input('Na jakaką wartość chcesz zmienić wybraną zmienną:')
@@ -58,7 +59,7 @@ class Pracownik():
                     elif (wybor2 == '5'):
                         temp1 = 'login'
                     elif (wybor2 == '6'):
-                        zmiana = input("Czy chcesz zmienic swoje haslo? T/N ")
+                        zmiana = input("Czy chcesz zmienic swoje haslo? T/N \n")
                         zmiana = zmiana.upper()
                         if (zmiana == 'T'):
                             petla1 = True
@@ -116,7 +117,7 @@ class Pracownik():
 
 
             else:
-                temp = input("Podales zle haslo\n1. Sprobuj ponownie\n2. Wroc do glownego menu")
+                temp = input("Podales zle haslo\n1. Sprobuj ponownie\n2. Wroc do glownego menu\n")
                 if (temp == '1'):
                     proba = proba - 1
                 elif (temp == '2'):
@@ -130,7 +131,7 @@ class Pracownik():
         petla0 = True
         while(petla0):
             rodzaj = input("\nAktualizujesz stan magazynu\nWybierz co chesz zaktualizowac\n"
-                           "1. Zwiazki chemiczne\n2. Sprzet laboratoryjny ")
+                           "1. Zwiazki chemiczne\n2. Sprzet laboratoryjny\n")
             if (rodzaj == '1'):
                 petla1 = True
                 while(petla1):
@@ -157,23 +158,211 @@ class Pracownik():
                 sprzet = cursor.fetchall()
                 for sl in sprzet:
                     print(sl[0],"\n")
-                nazwa = input("Wpisz nazwe sprzetu: ")
-                szt = input("Podaj ilosc sprzetu, ktora chcesz odjac: ")
+                nazwa = input("Wpisz nazwe sprzetu:\n")
+                szt = input("Podaj ilosc sprzetu, ktora chcesz odjac:\n")
                 query = "UPDATE sprzet_lab SET ilosc=CONCAT(ilosc-'{}')" \
                         " WHERE nazwa='{}'".format(szt, nazwa)
                 cursor.execute(query)
                 mydb.commit()
 
     def dodaj_do_listy_zakupow(self, id_pracownika):
-        print("Dodawanie do listy zakupów:")
+        element = input("\nCo chcesz dodac do list zakupow?\n1. Zwiazek chemiczny\n2. Sprzet laboratoryjny\n")
+        petla = True
+        while(petla):
+            data = datetime.datetime.now()
+            if (element == '1'):
+                id_zwiazku = IDzwiazku()
+                ilosc = input("Podaj ilosc:\n")
+                ilosc = int(ilosc)
+                query = "SELECT cena_za_gram FROM info_o_zwiazku WHERE id_zwiazku='{}'".format(id_zwiazku)
+                cursor.execute(query)
+                cena = cursor.fetchall()
+                for c in cena:
+                    cena = int(c[0])
+                query = "SELECT admin FROM pracownicy WHERE id_pracownika='{}'".format(id_pracownika)
+                cursor.execute(query)
+                admin = cursor.fetchall()
+                for a in admin:
+                    admin = int(a[0])
+                cena = float(cena) * float(ilosc)
+                query = "INSERT INTO zakupy SET id_zwiazku='{}',data_zakupu='{}', " \
+                        "ilosc='{}', cena='{}', stan_zamowienia=0; ".format(id_zwiazku, data, ilosc, cena)
+                cursor.execute(query)
+                mydb.commit()
+                if(admin):
+                    query = "SELECT id_zakupu FROM zakupy ORDER BY data_zakupu DESC LIMIT 1 "
+                    cursor.execute(query)
+                    id = cursor.fetchall()
+                    for ID in id:
+                        id = ID[0]
+                    query = "UPDATE zakupy SET stan_zamowienia=1 WHERE id_zakupu='{}'".format(id)
+                    cursor.execute(query)
+                    mydb.commit()
+                    query = "INSERT INTO wydatki SET typ_wydatku='zwiazek', cena='{}', id_zakupu='{}'".format(cena, id)
+                    cursor.execute(query)
+                    mydb.commit()
+                    print("Dodano")
+                else:
+                    print("Twoje zamowienie zostalo dodane do listy zakupow\nOczekuje na "
+                          "zatwierdzenie przez administratora")
+                petla = False
+            elif (element == '2'):
+                query = "SELECT nazwa FROM sprzet_lab"
+                cursor.execute(query)
+                sprzet = cursor.fetchall()
+                for sl in sprzet:
+                    print(sl[0])
+                nazwa = input("Wpisz nazwe sprzetu:\n")
+                query = "SELECT id_sprzetu FROM sprzet_lab WHERE nazwa='{}'".format(nazwa)
+                cursor.execute(query)
+                id_sprzetu = cursor.fetchall()
+                for numer in id_sprzetu:
+                    id_sprzetu = numer[0]
+                ilosc = input("Podaj ilosc:\n")
+                ilosc = int(ilosc)
+                cena = int(input("Podaj cene za 1 szt\n"))
+                query = "SELECT admin FROM pracownicy WHERE id_pracownika='{}'".format(id_pracownika)
+                cursor.execute(query)
+                admin = cursor.fetchall()
+                for a in admin:
+                    admin = int(a[0])
+                cena = float(cena) * float(ilosc)
+                query = "INSERT INTO zakupy SET id_sprzetu='{}',data_zakupu='{}', " \
+                        "ilosc='{}', cena='{}', stan_zamowienia=0; ".format(id_sprzetu, data, ilosc, cena)
+                cursor.execute(query)
+                mydb.commit()
+                if (admin):
+                    query = "SELECT id_zakupu FROM zakupy ORDER BY data_zakupu DESC LIMIT 1 "
+                    cursor.execute(query)
+                    id = cursor.fetchall()
+                    for ID in id:
+                        id = ID[0]
+                    query = "UPDATE zakupy SET stan_zamowienia=1 WHERE id_zakupu='{}'".format(id)
+                    cursor.execute(query)
+                    mydb.commit()
+                    query = "INSERT INTO wydatki SET typ_wydatku='sprzet', cena='{}', id_zakupu='{}'".format(cena, id)
+                    cursor.execute(query)
+                    mydb.commit()
+                    print("Dodano")
+                else:
+                    print("Twoje zamowienie zostalo dodane do listy zakupow\nOczekuje "
+                          "zatwierdzenia przez administratora")
+                petla = False
+            else:
+                print("Wybrano zla opcje")
+
 
 
 class Administrator(Pracownik):
-    def _init_(self, id_pracownika):
-        super()._init_(id_pracownika)
+    def __init__(self, id_pracownika):
+        super().__init__(id_pracownika)
 
     def nadzor_nad_lista_zakupow(self):
-        print("Zarządzanie lista zakupów")
+        print("\nZarządzanie lista zakupów\nDo zaakceptowaia czeka:")
+        query = "SELECT zakupy.data_zakupu, zakupy.stan_zamowienia, COUNT(stan_zamowienia) " \
+                "FROM zakupy GROUP BY zakupy.data_zakupu DESC HAVING zakupy.stan_zamowienia=0"
+        cursor.execute(query)
+        zam = cursor.fetchall()
+        for z in zam:
+            print("Data: ", z[0])
+            print("Ilosc zamowien: ", z[2])
+        print("-----")
+        data = datetime.datetime.now()
+        query = "SELECT id_zakupu, zakupy.id_zwiazku, zakupy.id_sprzetu, info_o_zwiazku.nazwa_zwiazku, " \
+                "sprzet_lab.nazwa, data_zakupu, zakupy.ilosc, cena " \
+                "FROM zakupy " \
+                "LEFT JOIN info_o_zwiazku USING (id_zwiazku)" \
+                "LEFT JOIN sprzet_lab USING (id_sprzetu) " \
+                "WHERE zakupy.stan_zamowienia=0"
+        cursor.execute(query)
+        lista = cursor.fetchall()
+        for numer in lista:
+            print("-----")
+            print("Nr: ", numer[0])
+            if(numer[1]=='NULL'):
+                print("Nazwa sprzetu: ", numer[4])
+            if(numer[2]=='NULL'):
+                print("Nazwa zwiazku: ", numer[3])
+            print("Data zamowienia: ",numer[5])
+            print("Zamowiona ilosc: ", numer[6])
+            print("Cena: ", numer[7])
+            cena = numer[7]
+        calosc = input("Czy chcesz:\n1. Modyfikowac pojedynczo\n2. Modyfikowac calosc\n")
+        if(calosc == '1'):
+            petla = True
+            while(petla):
+                potwierdz = input("Podaj nr ktory chcesz modyfikowac\n")
+                modyfikacja = input("Wybierz czy chcesz:\n1. Zatwierdzic\n2. Usunac\n")
+                petla1 = True
+                while(petla1):
+                    if(modyfikacja == '1'):
+                        query = "UPDATE zakupy SET stan_zamowienia=1 WHERE id_zakupu='{}'".format(potwierdz)
+                        cursor.execute(query)
+                        mydb.commit()
+
+                        query = "SELECT id_zwiazku FROM zakupy " \
+                                "WHERE id_zakupu='{}'".format(potwierdz)
+                        cursor.execute(query)
+                        lista = cursor.fetchall()
+                        typW = "a"
+                        for l in lista:
+                            for ll in l:
+                                typW = "sprzet"
+                                if (ll != '0'):
+                                    typW = "zwiazek"
+                                query = "INSERT INTO wydatki SET wydatki.typ_wydatku='{}', cena='{}'," \
+                                        " id_zakupu='{}', data='{}'".format(typW, cena, potwierdz, data)
+                                cursor.execute(query)
+                                mydb.commit()
+
+                    elif(modyfikacja == '2'):
+                        query = "DELETE FROM zakupy WHERE id_zakupu='{}'".format(potwierdz)
+                        cursor.execute(query)
+                        mydb.commit()
+                        print("Zmodyfikowano")
+                    dalej = input("czy chcesz dalej modyfikowac? T/N\n")
+                    dalej = dalej.upper()
+                    if(dalej == 'N'):
+                        petla1 = False
+                        petla = False
+                    elif(dalej == 'T'):
+                        petla1 = True
+                        potwierdz = input("Podaj nr ktory chcesz modyfikowac\n")
+
+        elif(calosc == '2'):
+            modyfikacja = input("Wybierz czy chcesz:\n1. Zatwierdzic\n2. Usunac\n")
+            if(modyfikacja == '1'):
+                query = "UPDATE zakupy SET stan_zamowienia=1 WHERE stan_zamowienia=0"
+                cursor.execute(query)
+                mydb.commit()
+                query = "SELECT id_zwiazku, id_sprzetu, zakupy.cena, zakupy.id_zakupu " \
+                        "FROM zakupy WHERE stan_zamowienia=0"
+                cursor.execute(query)
+                lista = cursor.fetchall()
+                typW = "a"
+                for l in lista:
+                    for ll in l:
+                        typW = "sprzet"
+                        if (ll != '0'):
+                            typW = "zwiazek"
+                        cena = l[2]
+                        idZ = l[3]
+                        print("CEna", cena)
+                        query = "INSERT INTO wydatki SET wydatki.typ_wydatku='{}', cena='{}'," \
+                                " id_zakupu='{}', data='{}'".format(typW, cena, idZ, data)
+                        cursor.execute(query)
+                        mydb.commit()
+                print("Zmodyfikowano")
+
+            elif(modyfikacja == '2'):
+                query = "DELETE FROM zakupy WHERE stan_zamowienia=0"
+                cursor.execute(query)
+                mydb.commit()
+                print("Zmodyfikowano")
+
+
+
+
     def wyplac_pensje(self):
         query = "SELECT SUM(pensja) FROM pracownicy"
         cursor.execute(query)
@@ -267,15 +456,55 @@ class Administrator(Pracownik):
 
 
 
-    def wyswietl_wydatki():
+    def wyswietl_wydatki(self):
         print("Wydatki:")
+        query = "SELECT id_wydatku, typ_wydatku, wydatki.cena, data, " \
+                    "pracownicy.imie, pracownicy.nazwisko, zakupy.ilosc, " \
+                    "odbior_odpadow.ilosc_zadeklarowanych_wiaderek FROM wydatki " \
+                    "LEFT JOIN pracownicy USING (id_pracownika) " \
+                    "LEFT JOIN zakupy USING (id_zakupu) " \
+                    "LEFT JOIN odbior_odpadow USING (id_odbioru)"
+        cursor.execute(query)
 
-    def aktualizuj_dane_odbiorcow():
-        print("Aktualizowanie danych odbiorców:")
+
+    def zamow_odbior_wiaderek(self):
+        print("\nZamawianie odbioru wiaderek")
+        petla0 = True
+        while(petla0):
+            ilosc = input("Ile wiaderek chcesz zamowic?\n")
+            petla = True
+            if (ilosc > '0'):
+                while (petla):
+                    data = datetime.datetime.now()
+                    cena = input("Podaj cene za wiaderko\n")
+                    if (cena > '0'):
+                        query = "INSERT INTO odbior_odpadow SET data_zgloszenia='{}',cena_za_wiaderko='{}', " \
+                        "ilosc_zadeklarowanych_wiaderek='{}'".format(data, cena, ilosc)
+                        cursor.execute(query)
+                        mydb.commit()
+                        query = "SELECT id_odbioru FROM odbior_odpadow ORDER BY data_zgloszenia DESC LIMIT 1 "
+                        cursor.execute(query)
+                        id = cursor.fetchall()
+                        for ID in id:
+                            id = ID[0]
+                        petla = False
+                        petla0 = False
+                        cena = float(cena) * float(ilosc)
+                        query = "INSERT INTO wydatki SET typ_wydatku='odpady', cena='{}', " \
+                                "data='{}', id_odbioru='{}'".format(cena,data, id )
+                        cursor.execute(query)
+                        mydb.commit()
+
+                    else:
+                        print("Podaj cene wieksza od 0")
+            else:
+                print("Podaj prawidlowa ilosc wiaderek do odbioru")
+
+
 
 
 def IDzwiazku():
-    form = input("Wybierz format wyszukiwania zwiazku:\n1.Wzor zwiazku\n2.Nazwa zwiazku")
+    form = input("Wybierz format wyszukiwania zwiazku:\n1.Wzor zwiazku\n2.Nazwa zwiazku\n")
     if (form == '1'):
         wzor = input("Wpisz wzor zwiazku: ")
         query = "SELECT id_zwiazku FROM info_o_zwiazku WHERE wzor='{}'".format(wzor)
@@ -337,7 +566,8 @@ class Zwiazek_chemiczny():
 
 class Magazyn():
     def wyswietl_sprzet_lab(self):
-        query = "SELECT nazwa, ilosc, uwagi FROM sprzet_lab WHERE ilosc >0;"
+        query = "SELECT nazwa, ilosc, uwagi FROM sprzet_lab " \
+                "WHERE ilosc >0 ORDER BY nazwa ASC;"
         cursor.execute(query)
         sprzet_lab = cursor.fetchall()
         print("----------------------------")
@@ -352,11 +582,13 @@ class Magazyn():
         dec = input("Wybierz ktora opcje chceszy wyswietlic:\n1. Dostepne zwazki\n"
                     "2. Brakujace zwiazki\n3. Wszystkie zwiazki znajdujace sie w bazie ")
         if (dec == '1'):
-            query = "SELECT nazwa_zwiazku, obecny_stan_w_magazynie FROM info_o_zwiazku WHERE info_o_zwiazku.obecny_stan_w_magazynie>0;"
+            query = "SELECT nazwa_zwiazku, obecny_stan_w_magazynie FROM info_o_zwiazku " \
+                    "WHERE info_o_zwiazku.obecny_stan_w_magazynie>0 ORDER BY obecny_stan_w_magazynie DESC;"
         elif(dec == '2'):
-            query = "SELECT nazwa_zwiazku, obecny_stan_w_magazynie FROM info_o_zwiazku WHERE info_o_zwiazku.obecny_stan_w_magazynie=0;"
+            query = "SELECT nazwa_zwiazku, obecny_stan_w_magazynie FROM info_o_zwiazku " \
+                    "WHERE info_o_zwiazku.obecny_stan_w_magazynie=0 ORDER BY nazwa_zwiazku ASC;"
         elif(dec == '3'):
-            query = "SELECT nazwa_zwiazku, obecny_stan_w_magazynie FROM info_o_zwiazku;"
+            query = "SELECT nazwa_zwiazku, obecny_stan_w_magazynie FROM info_o_zwiazku ORDER BY nazwa_zwiazku ASC;"
         else:
             print("Wybrales zla opcje\n")
             self.wyswietl_dostepne_zwiazki()
@@ -468,7 +700,6 @@ class Konto():
             wybieranie1(account)
 
 
-# /////////////////////Funkcje/////////////////
 def main():
     # odczyt
     global mydb
@@ -483,7 +714,7 @@ def wybieranie1(account):
     print("Witamy w laboratorium chemicznym\n1.Zaloguj"
           "\n2.Zarejestruj.\n3.Zapomniałem hasła."
           "\n4.Zamknij")
-    wybor = input("Wprowadź wartość: ")
+    wybor = input("Wprowadź wartość:\n")
     if (wybor == '1'):
         account.zaloguj()
     elif (wybor == '2'):
@@ -512,12 +743,13 @@ def wybieranie2(id_pracownika):
     for (imie, nazwisko) in dane:
         print("WITAJ " + imie + " " + nazwisko)
         print(
-            "1.Wyświetl informacje o sobie\n2.Zarezerwuj laboratorium"
-            "\n3.Aktualizuj stan magazynu\n4.Dodaj do listy zakupów\n5.Przejdz do magazynu")
+            "1. Wyświetl informacje o sobie\n2. Zarezerwuj laboratorium"
+            "\n3. Aktualizuj stan magazynu\n4. Dodaj do listy zakupów\n5. Przejdz do magazynu\n")
         if (admin == 1):
-            print("###### FUNKCJE ADMINA ######\n6.Zatwierdz zakupy\n7.Aktualizuj dane pracownika"
-                  "\n8.Wyswietl wydatki\n9.Aktualizuj dane odbiorcow")
-        wybor = input("Wybór(wiekszosc wyrzuci blad narazie, 5 bezpieczna jak cos")
+            print("###### FUNKCJE ADMINA ######\n6. Zatwierdz zakupy\n7. Aktualizuj dane pracownika"
+                  "\n8. Wyswietl wydatki\n9. Aktualizuj dane odbiorcow\n10. Wyplac pensje\n11. Zatwierdz liste zakupow")
+        wybor = input("Wybór\n")
+
         if (wybor == '1'):
             if (admin == 1):
                 adm.wyswietl_info_o_sobie(id_pracownika)
@@ -548,18 +780,21 @@ def wybieranie2(id_pracownika):
         elif (wybor == '8'):
             adm.wyswietl_wydatki()
         elif (wybor == '9'):
-            adm.aktualizuj_dane_odbiorcow()
+            adm. zamow_odbior_wiaderek()
         elif (wybor == '10'):
             adm.wyplac_pensje()
+        elif(wybor=='11'):
+            adm.nadzor_nad_lista_zakupow()
 
         else:
             print("Błąd! Wybierz jedną z dostępnych opcji!")
-            wybieranie2(id_pracownika, admin)
+            wybieranie2(id_pracownika)
+            #wybieranie2(id_pracownika, admin)
 
 
 def przejdz_do_magazynu(admin):
-    print("\n##### MAGAZYN #####\n1.Wyswietl informacje chemiczne\n2.Wyswietl cene i stan"
-          "\n3.Wyswietl dostepny sprzet\n4.Wyswietl dostepne zwiazki\n5.Powrot do menu\n")
+    print("\n##### MAGAZYN #####\n1. Wyswietl informacje chemiczne\n2. Wyswietl cene i stan"
+          "\n3. Wyswietl dostepny sprzet\n4. Wyswietl dostepne zwiazki\n5. Powrot do menu\n")
     wybor = input("Wybor: ")
     magazyn = Magazyn()
     zwiazek = Zwiazek_chemiczny()
@@ -585,6 +820,7 @@ def przejdz_do_magazynu(admin):
 
 if __name__ == "__main__":
     main()
+
 
 
 
