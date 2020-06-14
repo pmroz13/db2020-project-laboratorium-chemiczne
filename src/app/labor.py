@@ -252,7 +252,6 @@ class Pracownik():
                 print("Wybrano zla opcje")
 
 
-
 class Administrator(Pracownik):
     def __init__(self, id_pracownika):
         super().__init__(id_pracownika)
@@ -501,8 +500,6 @@ class Administrator(Pracownik):
                 print("Podaj prawidlowa ilosc wiaderek do odbioru")
 
 
-
-
 def IDzwiazku():
     form = input("Wybierz format wyszukiwania zwiazku:\n1.Wzor zwiazku\n2.Nazwa zwiazku\n")
     if (form == '1'):
@@ -561,8 +558,6 @@ class Zwiazek_chemiczny():
             print("Cena za gram: ", zwiazek[1],"zl")
             print("Obecna ilosc w magazynie: ",zwiazek[2],"g")
         cursor.close()
-
-
 
 class Magazyn():
     def wyswietl_sprzet_lab(self):
