@@ -1,7 +1,7 @@
 import mysql.connector
 from mysql.connector import errorcode
 import time
-import pymysql
+#import pymysql
 import datetime
 
 class Pracownik():
@@ -125,7 +125,86 @@ class Pracownik():
         cursor.close()
 
     def rezerwuj_termin(self, id_pracownika):
-        print("Rezerwacja terminu:")
+        dostepny = True
+        wybor = input(
+            "1.Wyświetl Stare rezerwacje\n2.Wyświetl aktualne rezerwacje\n3.Dokonaj rezerwacji\n4.Twoje rezerwacje\nWybór:")
+        if (wybor == '1'):
+            query = "SELECT rezerwacje_lab.termin,pracownicy.imie, pracownicy.nazwisko FROM rezerwacje_lab INNER JOIN pracownicy ON rezerwacje_lab.id_pracownika = pracownicy.id_pracownika WHERE rezerwacje_lab.termin < CURRENT_TIME ORDER BY termin"
+            cursor.execute(query)  # wykonujemy zapytanie SQL na obiekcie cursor
+            for (a, b, c) in cursor:
+                print("{}:{} {}".format(a, b, c));
+
+        elif (wybor == '2'):
+            query = "SELECT rezerwacje_lab.termin,pracownicy.imie, pracownicy.nazwisko FROM rezerwacje_lab INNER JOIN pracownicy ON rezerwacje_lab.id_pracownika = pracownicy.id_pracownika WHERE rezerwacje_lab.termin > CURRENT_TIME ORDER BY termin"
+            cursor.execute(query)  # wykonujemy zapytanie SQL na obiekcie cursor
+            for (a, b, c) in cursor:
+                print("{}:{} {}".format(a, b, c));
+
+        elif (wybor == '3'):
+            print("Rezerwacja terminu:")
+            rok = input("Wpisz rok:")
+            miesiac = input("Wpisz miesiac:")
+            dzien = input("Wpisz dzien:")
+            godzinas = input("Wpisz godzinę rozpoczęcia:")
+            godzinaz = input("Wpisz godzinę zakończenia:")
+            godzinas2 = int(godzinas)
+            godzinaz2 = int(godzinaz)
+
+            while (godzinas2 < godzinaz2):
+                termin2 = '{}-{}-{} {}:00:00'.format(rok, miesiac, dzien, godzinas2)
+                query = "SELECT COUNT(1) FROM rezerwacje_lab WHERE termin = '{}'".format(termin2)
+                cursor.execute(query)  # wykonujemy zapytanie SQL na obiekcie cursor
+                for a in cursor:
+                    godzinas2 = godzinas2 + 1
+                    if (a[0] == 1):
+                        dostepny = False
+
+            if (dostepny == True):
+
+                while (godzinas < godzinaz):
+                    termin = '{}-{}-{} {}:00:00'.format(rok, miesiac, dzien, godzinas)
+                    query = "INSERT INTO rezerwacje_lab SET id_pracownika={}, termin='{}'".format(id_pracownika, termin)
+                    cursor.execute(query)
+                    mydb.commit()
+                    godzinas = "{}".format(int(godzinas) + 1)
+
+                print("Dokonano rezerwacji!")
+            else:
+                print("Termin zajęty!")
+
+        elif (wybor == '4'):
+            query = "SELECT rezerwacje_lab.id_rezerwacji , rezerwacje_lab.termin,pracownicy.imie, pracownicy.nazwisko FROM rezerwacje_lab INNER JOIN pracownicy ON rezerwacje_lab.id_pracownika = pracownicy.id_pracownika WHERE rezerwacje_lab.id_pracownika={}".format(
+                id_pracownika)
+            cursor.execute(query)  # wykonujemy zapytanie SQL na obiekcie cursor
+            for (a, b, c, d) in cursor:
+                print("{} {}    {} {}".format(a, b, c, d));
+
+            print("Wpisz ID rezerwacji, którą chcesz usunąć, lum M jesłi chcesz powrócić do Menu")
+            wybor2 = input("Wybor:")
+
+            if (wybor2.upper() == 'M'):
+                wybieranie2(id_pracownika)
+
+            else:
+                query = "DELETE FROM rezerwacje_lab WHERE id_rezerwacji = {}".format(wybor2)
+                cursor.execute(query)
+                mydb.commit()
+                print("Usunięto rejestrację")
+
+
+
+
+        else:
+            wybieranie2(id_pracownika)
+
+        wybor = input("1.Powrót do rezerwacji\n2.Powrót do MENU\nWybor:")
+        if (wybor == '1'):
+            try:
+                adm.rezerwuj_termin(id_pracownika)
+            except:
+                worker.rezerwuj_termin(id_pracownika)
+        else:
+            wybieranie2(id_pracownika)
 
     def aktualizuj_stan_magazynu(self, id_pracownika):
         petla0 = True
@@ -148,9 +227,10 @@ class Pracownik():
                     cursor.execute(query)
                     mydb.commit()
                     kolejny = input("Czy chcesz dodac kolejny zwiazek? T/N\n")
-                    kolejny = kolejny.upper()
-                    if( kolejny == 'N'):
+                    if( kolejny.upper() == 'N'):
                         petla1 = 0
+                        wybieranie2(id_pracownika)
+
 
             elif (rodzaj == '2'):
                 query = "SELECT nazwa FROM sprzet_lab"
@@ -164,6 +244,8 @@ class Pracownik():
                         " WHERE nazwa='{}'".format(szt, nazwa)
                 cursor.execute(query)
                 mydb.commit()
+                print("Zaktualizowano, powrót do Menu")
+                wybieranie2(id_pracownika)
 
     def dodaj_do_listy_zakupow(self, id_pracownika):
         element = input("\nCo chcesz dodac do list zakupow?\n1. Zwiazek chemiczny\n2. Sprzet laboratoryjny\n")
@@ -198,7 +280,7 @@ class Pracownik():
                     query = "UPDATE zakupy SET stan_zamowienia=1 WHERE id_zakupu='{}'".format(id)
                     cursor.execute(query)
                     mydb.commit()
-                    query = "INSERT INTO wydatki SET typ_wydatku='zwiazek', cena='{}', id_zakupu='{}'".format(cena, id)
+                    query = "INSERT INTO wydatki SET typ_wydatku='zwiazek', cena='{}', id_zakupu='{}',data = '{}'".format(cena, id, data)
                     cursor.execute(query)
                     mydb.commit()
                     print("Dodano")
@@ -240,7 +322,7 @@ class Pracownik():
                     query = "UPDATE zakupy SET stan_zamowienia=1 WHERE id_zakupu='{}'".format(id)
                     cursor.execute(query)
                     mydb.commit()
-                    query = "INSERT INTO wydatki SET typ_wydatku='sprzet', cena='{}', id_zakupu='{}'".format(cena, id)
+                    query = "INSERT INTO wydatki SET typ_wydatku='sprzet', cena='{}', id_zakupu='{}',data='{}'".format(cena, id,data)
                     cursor.execute(query)
                     mydb.commit()
                     print("Dodano")
@@ -250,6 +332,16 @@ class Pracownik():
                 petla = False
             else:
                 print("Wybrano zla opcje")
+        wybor = input("1.Powrót do dodawania\n2.Powrót do MENU\nWybor:")
+        if (wybor == '1'):
+            try:
+                adm.dodaj_do_listy_zakupow(id_pracownika)
+            except:
+                worker.dodaj_do_listy_zakupow(id_pracownika)
+        else:
+            wybieranie2(id_pracownika)
+
+
 
 
 class Administrator(Pracownik):
@@ -299,16 +391,18 @@ class Administrator(Pracownik):
                         cursor.execute(query)
                         mydb.commit()
 
-                        query = "SELECT id_zwiazku FROM zakupy " \
+                        query = "SELECT id_zwiazku,id_sprzetu FROM zakupy " \
                                 "WHERE id_zakupu='{}'".format(potwierdz)
                         cursor.execute(query)
                         lista = cursor.fetchall()
-                        typW = "a"
+
                         for l in lista:
-                            for ll in l:
-                                typW = "sprzet"
-                                if (ll != '0'):
-                                    typW = "zwiazek"
+                                if(l[0]==None):
+                                    typW='sprzet'
+                                elif(l[1]==None):
+                                    typW='zwiazek'
+                                else:
+                                    "Błąd"
                                 query = "INSERT INTO wydatki SET wydatki.typ_wydatku='{}', cena='{}'," \
                                         " id_zakupu='{}', data='{}'".format(typW, cena, potwierdz, data)
                                 cursor.execute(query)
@@ -331,34 +425,43 @@ class Administrator(Pracownik):
         elif(calosc == '2'):
             modyfikacja = input("Wybierz czy chcesz:\n1. Zatwierdzic\n2. Usunac\n")
             if(modyfikacja == '1'):
-                query = "UPDATE zakupy SET stan_zamowienia=1 WHERE stan_zamowienia=0"
-                cursor.execute(query)
-                mydb.commit()
-                query = "SELECT id_zwiazku, id_sprzetu, zakupy.cena, zakupy.id_zakupu " \
+
+                query = "SELECT id_zwiazku, id_sprzetu, zakupy.cena, zakupy.id_zakupu, zakupy.ilosc " \
                         "FROM zakupy WHERE stan_zamowienia=0"
                 cursor.execute(query)
                 lista = cursor.fetchall()
-                typW = "a"
+
                 for l in lista:
-                    for ll in l:
-                        typW = "sprzet"
-                        if (ll != '0'):
-                            typW = "zwiazek"
-                        cena = l[2]
-                        idZ = l[3]
-                        print("CEna", cena)
-                        query = "INSERT INTO wydatki SET wydatki.typ_wydatku='{}', cena='{}'," \
+
+                    cena = l[2]
+                    idZ = l[3]
+                    if (l[0] == None):
+                        typW = 'sprzet'
+                    elif (l[1] == None):
+                        typW = 'zwiazek'
+
+                    query = "INSERT INTO wydatki SET wydatki.typ_wydatku='{}', cena='{}'," \
                                 " id_zakupu='{}', data='{}'".format(typW, cena, idZ, data)
-                        cursor.execute(query)
-                        mydb.commit()
+                    cursor.execute(query)
+                    mydb.commit()
                 print("Zmodyfikowano")
 
+                query = "UPDATE zakupy SET stan_zamowienia=1 WHERE stan_zamowienia=0"
+                cursor.execute(query)
+                mydb.commit()
+
             elif(modyfikacja == '2'):
+
                 query = "DELETE FROM zakupy WHERE stan_zamowienia=0"
                 cursor.execute(query)
                 mydb.commit()
                 print("Zmodyfikowano")
 
+        wybor = input("1.Powrót do zarządzania lisą zakupów\n2.Powrót do MENU\nWybor:")
+        if (wybor == '1'):
+            adm.nadzor_nad_lista_zakupow(id_pracownika)
+        else:
+            wybieranie2(adm.id_pracownika)
 
 
 
@@ -369,7 +472,11 @@ class Administrator(Pracownik):
         print("Czy chcesz wypłacić pensję wszystkim pracownikom? Koszt operacji to: {} zł".format(pensja))#JAK ZROBIĆ BEZ DECIMAL??????
         wybor=input("T/N?:")
         if(wybor.upper()=='T'):
-            print("przenoszenie tego wszystkiego do tablicy wydatkow")
+
+            query = "INSERT INTO wydatki (id_pracownika,typ_wydatku,cena,data) SELECT id_pracownika, 'pensja', pensja, " \
+                    "CURRENT_DATE FROM pracownicy WHERE pensja>0"
+            cursor.execute(query)
+            mydb.commit()
         else:
             wybieranie2(adm.id_pracownika)
 
@@ -429,7 +536,11 @@ class Administrator(Pracownik):
                 elif (wybor2 == '13'):
                     kwota=input("Wpisz kwotę, którą chcesz mu zapłacić:")
                     if(kwota!='0'):
-                        print("dodawanie do historii wydatkow")
+                        print("przenoszenie tego wszystkiego do tablicy wydatkow")
+                        query = "INSERT INTO wydatki (id_pracownika,typ_wydatku,cena,data) SELECT id_pracownika, 'pensja', {}, " \
+                                "CURRENT_DATE FROM pracownicy WHERE id_pracownika ='{}' ".format(kwota,wybor)
+                        cursor.execute(query)
+                        mydb.commit()
 
                 else:
                     wybieranie2(adm.id_pracownika)
@@ -456,14 +567,48 @@ class Administrator(Pracownik):
 
 
     def wyswietl_wydatki(self):
-        print("Wydatki:")
-        query = "SELECT id_wydatku, typ_wydatku, wydatki.cena, data, " \
-                    "pracownicy.imie, pracownicy.nazwisko, zakupy.ilosc, " \
-                    "odbior_odpadow.ilosc_zadeklarowanych_wiaderek FROM wydatki " \
-                    "LEFT JOIN pracownicy USING (id_pracownika) " \
-                    "LEFT JOIN zakupy USING (id_zakupu) " \
-                    "LEFT JOIN odbior_odpadow USING (id_odbioru)"
+        print("1.Wyswietl od najstarszego\n2.Wyświetl od najnowszego\n3.Wyświetl od najdroższego\n4.Wyświetl od najtańszego\n5.Wyświetl wedle rodzaju")
+        wybor=input("Wybor:")
+
+        if(wybor=='1'):
+            rodzaj_sortowania="data"
+        elif (wybor == '2'):
+            rodzaj_sortowania = "data DESC"
+        elif (wybor == '3'):
+            rodzaj_sortowania = "cena DESC"
+        elif (wybor == '4'):
+            rodzaj_sortowania = "cena"
+        else:
+            rodzaj_sortowania = "typ_wydatku"
+
+        query = "SELECT id_wydatku, typ_wydatku, wydatki.cena, data, pracownicy.imie, pracownicy.nazwisko," \
+                "(SELECT nazwa_zwiazku FROM info_o_zwiazku WHERE id_zwiazku=zakupy.id_zwiazku)," \
+                "(SELECT nazwa FROM sprzet_lab WHERE id_sprzetu=zakupy.id_sprzetu), zakupy.ilosc, " \
+                "odbior_odpadow.ilosc_zadeklarowanych_wiaderek FROM wydatki LEFT JOIN pracownicy USING " \
+                "(id_pracownika) LEFT JOIN zakupy USING (id_zakupu) LEFT JOIN odbior_odpadow USING (id_odbioru) " \
+                "ORDER BY '{}'".format(rodzaj_sortowania)
         cursor.execute(query)
+
+        for (id_wydatku, typ, cena,data, imie,nazwisko, zwiazek,sprzet,ilosc,wiaderka) in cursor:
+            if(typ=='pensja'):
+                print("{} {}PLN {} {} {} ".format(typ, cena, data, imie, nazwisko))
+            elif (typ == 'odpady'):
+                print(
+                    "{} {}PLN {} {} wiaderka".format(typ, cena, data, wiaderka))
+            elif (typ == 'zwiazek'):
+                print(
+                    "{} {}PLN {} {} {}g".format(typ, cena, data, zwiazek, ilosc))
+            elif (typ == 'sprzet'):
+                print(
+                    "{} {}PLN {} {} {} sztuk".format(typ, cena, data, sprzet, ilosc))
+            else:
+                print("Błąd")
+
+        wybor = input("Wciśnij W aby wrócić do wydatków lub M aby wrócić do MENU: ")
+        if (wybor.upper() == 'W'):
+            adm.wyswietl_wydatki()
+        else:
+            wybieranie2(adm.id_pracownika)
 
 
     def zamow_odbior_wiaderek(self):
@@ -493,11 +638,14 @@ class Administrator(Pracownik):
                                 "data='{}', id_odbioru='{}'".format(cena,data, id )
                         cursor.execute(query)
                         mydb.commit()
+                        print("Zamówiono wiaderka")
+                        wybieranie2(adm.id_pracownika)
 
                     else:
                         print("Podaj cene wieksza od 0")
             else:
                 print("Podaj prawidlowa ilosc wiaderek do odbioru")
+
 
 
 def IDzwiazku():
@@ -660,9 +808,9 @@ class Konto():
         adres = input("Adres(Kod pocztowy, Miejscowość, Ulica, nr mieszkania): ")
         numer_konta = input("Numer konta bankowego: ")
 
-        print("Teraz dodajemy konto do bazy danych")
-        query = "INSERT INTO pracownicy SET imie='{}', nazwisko='{}',adres='{}',numer_konta='{}',login='{}',haslo='{}',\
-                email='{}'".format(imie, nazwisko, adres, numer_konta, login, haslo, email)
+        data = datetime.datetime.now()
+        query = "INSERT INTO pracownicy SET imie='{}',data_zatrudnienia='{}', nazwisko='{}',adres='{}',numer_konta='{}',login='{}',haslo='{}',\
+                email='{}'".format(imie,data, nazwisko, adres, numer_konta, login, haslo, email)
         cursor.execute(query)
         mydb.commit()
         print("Pomyślnie utworzono konto!!!")
@@ -685,6 +833,7 @@ class Konto():
                 query = "UPDATE pracownicy SET haslo='{}' WHERE email='{}'".format(nowehaslo, email)
                 cursor.execute(query)
                 mydb.commit()
+                wybieranie1(account)
             else:
                 print('BŁĘDNY KOD! Powrót do MENU')
                 wybieranie1(account)
@@ -701,6 +850,7 @@ def main():
     mydb = mysql.connector.connect(host="localhost", user="root", passwd="", database="laboratorium")
     global cursor
     cursor = mydb.cursor()
+    global account
     account = Konto()
     wybieranie1(account)
 
@@ -739,10 +889,10 @@ def wybieranie2(id_pracownika):
         print("WITAJ " + imie + " " + nazwisko)
         print(
             "1. Wyświetl informacje o sobie\n2. Zarezerwuj laboratorium"
-            "\n3. Aktualizuj stan magazynu\n4. Dodaj do listy zakupów\n5. Przejdz do magazynu\n")
+            "\n3. Aktualizuj stan magazynu\n4. Dodaj do listy zakupów\n5. Przejdz do magazynu\nW aby Wylogować\n")
         if (admin == 1):
             print("###### FUNKCJE ADMINA ######\n6. Zatwierdz zakupy\n7. Aktualizuj dane pracownika"
-                  "\n8. Wyswietl wydatki\n9. Aktualizuj dane odbiorcow\n10. Wyplac pensje\n11. Zatwierdz liste zakupow")
+                  "\n8. Wyswietl wydatki\n9. Zamów odbiór odpadów\n10. Wyplac pensje\n11. Zatwierdz liste zakupow")
         wybor = input("Wybór\n")
 
         if (wybor == '1'):
@@ -780,6 +930,19 @@ def wybieranie2(id_pracownika):
             adm.wyplac_pensje()
         elif(wybor=='11'):
             adm.nadzor_nad_lista_zakupow()
+        elif(wybor.upper()=='W'):
+
+            print("PAMIĘTAJ ABY PRZED WYLOGOWANIEM ZAKTUALIZOWAĆ STAN MAGAZYNU!!!")
+            wybor=input("1.Przejdź do aktualizacji magazynu\n2.Kontynuuj wylogowywanie")
+
+            if(wybor=='1'):
+                if (admin == 1):
+                    adm.aktualizuj_stan_magazynu(id_pracownika)
+                else:
+                    worker.aktualizuj_stan_magazynu(id_pracownika)
+
+            else:
+             wybieranie1(account)
 
         else:
             print("Błąd! Wybierz jedną z dostępnych opcji!")
