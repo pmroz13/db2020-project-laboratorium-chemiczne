@@ -76,8 +76,8 @@ class Pracownik():
                                     petla = True
                                     while (petla):
                                         if (nowe1 == nowe2):
-                                            query = "UPDATE pracownicy SET haslo='{}' WHERE id_pracownika='{}'".format(
-                                                nowe1, id_pracownika)
+                                            query = "UPDATE pracownicy SET haslo='{}' " \
+                                                    "WHERE id_pracownika='{}'".format(nowe1, id_pracownika)
                                             cursor.execute(query)
                                             mydb.commit()
                                             petla = False
@@ -129,13 +129,17 @@ class Pracownik():
         wybor = input(
             "1.Wyświetl Stare rezerwacje\n2.Wyświetl aktualne rezerwacje\n3.Dokonaj rezerwacji\n4.Twoje rezerwacje\nWybór:")
         if (wybor == '1'):
-            query = "SELECT rezerwacje_lab.termin,pracownicy.imie, pracownicy.nazwisko FROM rezerwacje_lab INNER JOIN pracownicy ON rezerwacje_lab.id_pracownika = pracownicy.id_pracownika WHERE rezerwacje_lab.termin < CURRENT_TIME ORDER BY termin"
+            query = "SELECT rezerwacje_lab.termin,pracownicy.imie, pracownicy.nazwisko FROM rezerwacje_lab INNER JOIN " \
+                    "pracownicy ON rezerwacje_lab.id_pracownika = pracownicy.id_pracownika " \
+                    "WHERE rezerwacje_lab.termin < CURRENT_TIME ORDER BY termin"
             cursor.execute(query)  # wykonujemy zapytanie SQL na obiekcie cursor
             for (a, b, c) in cursor:
                 print("{}:{} {}".format(a, b, c));
 
         elif (wybor == '2'):
-            query = "SELECT rezerwacje_lab.termin,pracownicy.imie, pracownicy.nazwisko FROM rezerwacje_lab INNER JOIN pracownicy ON rezerwacje_lab.id_pracownika = pracownicy.id_pracownika WHERE rezerwacje_lab.termin > CURRENT_TIME ORDER BY termin"
+            query = "SELECT rezerwacje_lab.termin,pracownicy.imie, pracownicy.nazwisko FROM rezerwacje_lab " \
+                    "INNER JOIN pracownicy ON rezerwacje_lab.id_pracownika = pracownicy.id_pracownika " \
+                    "WHERE rezerwacje_lab.termin > CURRENT_TIME ORDER BY termin"
             cursor.execute(query)  # wykonujemy zapytanie SQL na obiekcie cursor
             for (a, b, c) in cursor:
                 print("{}:{} {}".format(a, b, c));
@@ -173,8 +177,10 @@ class Pracownik():
                 print("Termin zajęty!")
 
         elif (wybor == '4'):
-            query = "SELECT rezerwacje_lab.id_rezerwacji , rezerwacje_lab.termin,pracownicy.imie, pracownicy.nazwisko FROM rezerwacje_lab INNER JOIN pracownicy ON rezerwacje_lab.id_pracownika = pracownicy.id_pracownika WHERE rezerwacje_lab.id_pracownika={}".format(
-                id_pracownika)
+            query = "SELECT rezerwacje_lab.id_rezerwacji , rezerwacje_lab.termin,pracownicy.imie, " \
+                    "pracownicy.nazwisko FROM rezerwacje_lab INNER JOIN pracownicy ON " \
+                    "rezerwacje_lab.id_pracownika = pracownicy.id_pracownika WHERE " \
+                    "rezerwacje_lab.id_pracownika={}".format(id_pracownika)
             cursor.execute(query)  # wykonujemy zapytanie SQL na obiekcie cursor
             for (a, b, c, d) in cursor:
                 print("{} {}    {} {}".format(a, b, c, d));
@@ -283,7 +289,8 @@ class Pracownik():
                     query = "UPDATE zakupy SET stan_zamowienia=1 WHERE id_zakupu='{}'".format(id)
                     cursor.execute(query)
                     mydb.commit()
-                    query = "INSERT INTO wydatki SET typ_wydatku='zwiazek', cena='{}', id_zakupu='{}',data = '{}'".format(cena, id, data)
+                    query = "INSERT INTO wydatki SET typ_wydatku='zwiazek', cena='{}', id_zakupu='{}'" \
+                            ",data = '{}'".format(cena, id, data)
                     cursor.execute(query)
                     mydb.commit()
                     print("Dodano")
@@ -325,7 +332,8 @@ class Pracownik():
                     query = "UPDATE zakupy SET stan_zamowienia=1 WHERE id_zakupu='{}'".format(id)
                     cursor.execute(query)
                     mydb.commit()
-                    query = "INSERT INTO wydatki SET typ_wydatku='sprzet', cena='{}', id_zakupu='{}',data='{}'".format(cena, id,data)
+                    query = "INSERT INTO wydatki SET typ_wydatku='sprzet', cena='{}', " \
+                            "id_zakupu='{}',data='{}'".format(cena, id,data)
                     cursor.execute(query)
                     mydb.commit()
                     print("Dodano")
@@ -373,9 +381,9 @@ class Administrator(Pracownik):
         for numer in lista:
             print("-----")
             print("Nr: ", numer[0])
-            if(numer[1]=='NULL'):
+            if(numer[1]==None):
                 print("Nazwa sprzetu: ", numer[4])
-            if(numer[2]=='NULL'):
+            if(numer[2]==None):
                 print("Nazwa zwiazku: ", numer[3])
             print("Data zamowienia: ",numer[5])
             print("Zamowiona ilosc: ", numer[6])
@@ -424,6 +432,7 @@ class Administrator(Pracownik):
                     elif(dalej == 'T'):
                         petla1 = True
                         potwierdz = input("Podaj nr ktory chcesz modyfikowac\n")
+                        modyfikacja = input("Wybierz czy chcesz:\n1. Zatwierdzic\n2. Usunac\n")
 
         elif(calosc == '2'):
             modyfikacja = input("Wybierz czy chcesz:\n1. Zatwierdzic\n2. Usunac\n")
@@ -493,13 +502,15 @@ class Administrator(Pracownik):
         for (id) in cursor:
             print("{}".format(id))
         szukana = input("Wyszukaj pracownika:")
-        query = "SELECT * FROM pracownicy WHERE imie LIKE '{}' OR nazwisko LIKE '{}' OR stanowisko LIKE '{}' OR login LIKE '{}'".format(
+        query = "SELECT * FROM pracownicy WHERE imie LIKE '{}' OR nazwisko LIKE '{}' " \
+                "OR stanowisko LIKE '{}' OR login LIKE '{}'".format(
             szukana, szukana, szukana, szukana)
         cursor.execute(query)
         for (id) in cursor:
             print("{}".format(id))
 
-        wybor = input("Wprowadz ID pracownika, któremu chcesz zmienić dane lub zapłacić pieniądze, lub M jeśli chcesz wrócić do MENU:")
+        wybor = input("Wprowadz ID pracownika, któremu chcesz zmienić dane lub zapłacić pieniądze, "
+                      "lub M jeśli chcesz wrócić do MENU:")
         if (wybor == 'M' or wybor == 'm'):
             wybieranie2(adm.id_pracownika)
         else:
@@ -541,7 +552,8 @@ class Administrator(Pracownik):
                 elif (wybor2 == '13'):
                     kwota=input("Wpisz kwotę, którą chcesz mu zapłacić:")
                     if(kwota!='0'):
-                        query = "INSERT INTO wydatki (id_pracownika,typ_wydatku,cena,data) SELECT id_pracownika, 'pensja', {}, " \
+                        query = "INSERT INTO wydatki (id_pracownika,typ_wydatku,cena,data) " \
+                                "SELECT id_pracownika, 'pensja', {}, " \
                                 "CURRENT_DATE FROM pracownicy WHERE id_pracownika ='{}' ".format(kwota,wybor)
                         cursor.execute(query)
                         mydb.commit()
@@ -571,7 +583,8 @@ class Administrator(Pracownik):
 
 
     def wyswietl_wydatki(self):
-        print("1.Wyswietl od najstarszego\n2.Wyświetl od najnowszego\n3.Wyświetl od najdroższego\n4.Wyświetl od najtańszego\n5.Wyświetl wedle rodzaju")
+        print("1.Wyswietl od najstarszego\n2.Wyświetl od najnowszego\n3.Wyświetl od najdroższego\n"
+              "4.Wyświetl od najtańszego\n5.Wyświetl wedle rodzaju")
         wybor=input("Wybor:")
 
         if(wybor=='1'):
@@ -814,7 +827,8 @@ class Konto():
         numer_konta = input("Numer konta bankowego: ")
 
         data = datetime.datetime.now()
-        query = "INSERT INTO pracownicy SET imie='{}',data_zatrudnienia='{}', nazwisko='{}',adres='{}',numer_konta='{}',login='{}',haslo='{}',\
+        query = "INSERT INTO pracownicy SET imie='{}',data_zatrudnienia='{}', nazwisko='{}',adres='{}'" \
+                ",numer_konta='{}',login='{}',haslo='{}',\
                 email='{}'".format(imie,data, nazwisko, adres, numer_konta, login, haslo, email)
         cursor.execute(query)
         mydb.commit()
@@ -982,15 +996,5 @@ def przejdz_do_magazynu(id_pracownika):
       wybieranie2(id_pracownika)
 
 
-
-
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
