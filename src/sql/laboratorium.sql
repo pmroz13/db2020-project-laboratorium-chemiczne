@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Czas generowania: 11 Cze 2020, 22:37
+-- Czas generowania: 14 Cze 2020, 02:26
 -- Wersja serwera: 10.4.11-MariaDB
 -- Wersja PHP: 7.2.31
 
@@ -62,6 +62,19 @@ CREATE TABLE `odbior_odpadow` (
   `ilosc_zadeklarowanych_wiaderek` int(5) DEFAULT NULL,
   `id_odbioru` int(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
+
+--
+-- Zrzut danych tabeli `odbior_odpadow`
+--
+
+INSERT INTO `odbior_odpadow` (`data_zgloszenia`, `cena_za_wiaderko`, `ilosc_zadeklarowanych_wiaderek`, `id_odbioru`) VALUES
+('2020-06-12', 3, 3, 1),
+('2020-06-12', 4, 3, 2),
+('2020-06-12', 2, 2, 3),
+('2020-06-12', 7, 1, 4),
+('2020-06-12', 6, 4, 5),
+('2020-06-12', 6, 5, 6),
+('2020-06-12', 9, 9, 7);
 
 -- --------------------------------------------------------
 
@@ -143,10 +156,25 @@ CREATE TABLE `wydatki` (
   `typ_wydatku` text COLLATE utf8mb4_polish_ci NOT NULL,
   `cena` float NOT NULL,
   `data` date NOT NULL,
-  `id_zakupu` int(11) NOT NULL,
-  `id_pracownika` int(11) NOT NULL,
-  `id_odbioru` int(11) NOT NULL
+  `id_zakupu` int(11) DEFAULT NULL,
+  `id_pracownika` int(11) DEFAULT NULL,
+  `id_odbioru` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_polish_ci;
+
+--
+-- Zrzut danych tabeli `wydatki`
+--
+
+INSERT INTO `wydatki` (`id_wydatku`, `typ_wydatku`, `cena`, `data`, `id_zakupu`, `id_pracownika`, `id_odbioru`) VALUES
+(1, 'odpady', 30, '2020-06-12', 0, 0, 6),
+(2, 'odpady', 81, '2020-06-12', 0, 0, 7),
+(3, 'zwiazek', 6, '0000-00-00', 1, NULL, NULL),
+(4, 'zwiazek', 8, '0000-00-00', 1, NULL, NULL),
+(5, 'zwiazek', 80, '0000-00-00', 3, NULL, NULL),
+(6, 'sprzet', 130, '0000-00-00', 4, NULL, NULL),
+(7, 'sprzet', 279, '0000-00-00', 5, NULL, NULL),
+(13, 'sprzet', 30, '0000-00-00', 6, NULL, NULL),
+(14, 'zwiazek', 80, '0000-00-00', 3, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -156,13 +184,24 @@ CREATE TABLE `wydatki` (
 
 CREATE TABLE `zakupy` (
   `id_zakupu` int(11) NOT NULL,
-  `id_zwiazku` int(11) NOT NULL,
-  `id_sprzetu` int(11) NOT NULL,
+  `id_zwiazku` int(11) DEFAULT NULL,
+  `id_sprzetu` int(11) DEFAULT NULL,
   `data_zakupu` date NOT NULL,
   `ilosc` int(11) NOT NULL,
   `cena` float NOT NULL,
   `stan_zamowienia` text CHARACTER SET utf8 COLLATE utf8_polish_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_polish_ci;
+
+--
+-- Zrzut danych tabeli `zakupy`
+--
+
+INSERT INTO `zakupy` (`id_zakupu`, `id_zwiazku`, `id_sprzetu`, `data_zakupu`, `ilosc`, `cena`, `stan_zamowienia`) VALUES
+(1, 1, NULL, '2020-06-13', 3, 6, '0'),
+(2, 1, NULL, '2020-06-13', 4, 8, '0'),
+(5, NULL, 2, '2020-06-13', 93, 279, '0'),
+(7, NULL, 3, '2020-06-13', 15, 30, '0'),
+(8, 2, NULL, '2020-05-01', 2, 25, '0');
 
 -- --------------------------------------------------------
 
@@ -252,6 +291,12 @@ ALTER TABLE `zuzyte_zwiazki`
 --
 
 --
+-- AUTO_INCREMENT dla tabeli `odbior_odpadow`
+--
+ALTER TABLE `odbior_odpadow`
+  MODIFY `id_odbioru` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
 -- AUTO_INCREMENT dla tabeli `pracownicy`
 --
 ALTER TABLE `pracownicy`
@@ -267,17 +312,30 @@ ALTER TABLE `sprzet_lab`
 -- AUTO_INCREMENT dla tabeli `wydatki`
 --
 ALTER TABLE `wydatki`
-  MODIFY `id_wydatku` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_wydatku` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT dla tabeli `zakupy`
 --
 ALTER TABLE `zakupy`
-  MODIFY `id_zakupu` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_zakupu` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Ograniczenia dla zrzutów tabel
 --
+
+--
+-- Ograniczenia dla tabeli `rezerwacje_lab`
+--
+ALTER TABLE `rezerwacje_lab`
+  ADD CONSTRAINT `rezerwacje_lab_ibfk_1` FOREIGN KEY (`id_pracownika`) REFERENCES `pracownicy` (`id_pracownika`);
+
+--
+-- Ograniczenia dla tabeli `zakupy`
+--
+ALTER TABLE `zakupy`
+  ADD CONSTRAINT `zakupy_ibfk_1` FOREIGN KEY (`id_sprzetu`) REFERENCES `sprzet_lab` (`id_sprzetu`),
+  ADD CONSTRAINT `zakupy_ibfk_2` FOREIGN KEY (`id_zwiazku`) REFERENCES `info_o_zwiazku` (`id_zwiazku`);
 
 --
 -- Ograniczenia dla tabeli `zuzyte_zwiazki`
