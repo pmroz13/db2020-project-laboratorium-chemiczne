@@ -2,12 +2,12 @@
 
 | Nazwisko i imię | Wydział | Kierunek | Semestr | Grupa | Rok akademicki |
 | :-------------: | :-----: | :------: | :-----: | :---: | :------------: |
-| Paulina Mróz    | WIMiIP  | IS       |   4     | 5     | 2019/2020      |
-| Artur Hamerski  | WIMiIP  | IS       |   4     | 2     | 2019/2020      |
+| Paulina Mróz    | WIMiIP  | IS       |   4     | 3     | 2019/2020      |
+| Artur Hamerski  | WIMiIP  | IS       |   4     | 1     | 2019/2020      |
 
 ## Projekt bazy danych
 
-![Schemat bazy](https://github.com/phajder-databases/db2020-project-laboratorium-chemiczne/blob/master/resources/labChem.svg)
+![Schemat bazy](https://github.com/phajder-databases/db2020-project-laboratorium-chemiczne/blob/master/resources/labChemDB.svg)
 
 ## Zapytania 
 Przykładowe zapytanie tworzące tabelę
@@ -71,6 +71,14 @@ LEFT JOIN info_o_zwiazku USING (id_zwiazku)
 LEFT JOIN sprzet_lab USING (id_sprzetu) 
 WHERE zakupy.stan_zamowienia=0;
 ```
+Wybranie instancji po połączeniu tabel używając INNER JOIN:
+```sql
+SELECT rezerwacje_lab.termin,pracownicy.imie, pracownicy.nazwisko 
+FROM rezerwacje_lab 
+INNER JOIN pracownicy ON rezerwacje_lab.id_pracownika = pracownicy.id_pracownika 
+WHERE rezerwacje_lab.termin > CURRENT_TIME ORDER BY termin;
+```
+
 Usuwanie pojedynczego rekordu według id_zakupu:
 ```sql
 DELETE FROM zakupy WHERE id_zakupu='{id_zakupu}';
@@ -90,13 +98,23 @@ SELECT nazwa_zwiazku, obecny_stan_w_magazynie FROM info_o_zwiazku
 WHERE info_o_zwiazku.obecny_stan_w_magazynie>0 
 ORDER BY obecny_stan_w_magazynie DESC;
 ```
-
+Użycie podzapytań SQL:
+```sql
+SELECT id_wydatku, typ_wydatku, wydatki.cena, data, 
+pracownicy.imie, pracownicy.nazwisko,
+(SELECT nazwa_zwiazku FROM info_o_zwiazku WHERE id_zwiazku=zakupy.id_zwiazku),
+(SELECT nazwa FROM sprzet_lab WHERE id_sprzetu=zakupy.id_sprzetu), 
+zakupy.ilosc, odbior_odpadow.ilosc_zadeklarowanych_wiaderek FROM wydatki 
+LEFT JOIN pracownicy USING (id_pracownika) 
+LEFT JOIN zakupy USING (id_zakupu) 
+LEFT JOIN odbior_odpadow USING (id_odbioru) ORDER BY {id_odbioru}
+```
 ## Aplikacja
 Do napisania aplikacji został wykorzystany język Python.
 Aplikacja została napisana obiektowo.
 W aplikacji wykorzystano 5 klas:
 - Pracownik;
-- Administrator- dziedziczącą z klasy Pracownik;
+- Administrator- dziedziczy z klasy Pracownik;
 - Zwiazek_Chemiczny;
 - Magazyn;
 - Konto.
@@ -106,4 +124,3 @@ Zimportowano następujące moduły w celu połaczenia z bazą danych:
 import mysql.connector
 import pymysql
 ```
-
