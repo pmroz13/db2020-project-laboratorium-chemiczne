@@ -107,5 +107,3 @@ import mysql.connector
 import pymysql
 ```
 
-## Dodatkowe uwagi
-W tej sekcji możecie zawrzeć informacje, których nie jesteście w stanie przypisać do pozostałych. Mogą to być również jakieś komentarze, wolne uwagi, itp.
