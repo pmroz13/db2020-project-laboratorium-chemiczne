@@ -122,7 +122,7 @@ class Pracownik():
                     proba = proba - 1
                 elif (temp == '2'):
                     proba = -1
-        cursor.close()
+
 
     def rezerwuj_termin(self, id_pracownika):
         dostepny = True
@@ -212,8 +212,7 @@ class Pracownik():
             rodzaj = input("\nAktualizujesz stan magazynu\nWybierz co chesz zaktualizowac\n"
                            "1. Zwiazki chemiczne\n2. Sprzet laboratoryjny\n")
             if (rodzaj == '1'):
-                petla1 = True
-                while(petla1):
+
                     id_zwiazku = IDzwiazku()
                     data = datetime.datetime.now()
                     gramy = input("Podaj ile gramow zuzyles\n")
@@ -228,7 +227,7 @@ class Pracownik():
                     mydb.commit()
                     kolejny = input("Czy chcesz dodac kolejny zwiazek? T/N\n")
                     if( kolejny.upper() == 'N'):
-                        petla1 = 0
+                        petla0 = 0
                         wybieranie2(id_pracownika)
 
 
@@ -244,8 +243,12 @@ class Pracownik():
                         " WHERE nazwa='{}'".format(szt, nazwa)
                 cursor.execute(query)
                 mydb.commit()
-                print("Zaktualizowano, powrót do Menu")
-                wybieranie2(id_pracownika)
+                kolejny = input("Czy chcesz dodac kolejny zwiazek? T/N\n")
+                if (kolejny.upper() == 'N'):
+                    petla0 = 0
+                    wybieranie2(id_pracownika)
+
+
 
     def dodaj_do_listy_zakupow(self, id_pracownika):
         element = input("\nCo chcesz dodac do list zakupow?\n1. Zwiazek chemiczny\n2. Sprzet laboratoryjny\n")
@@ -459,7 +462,7 @@ class Administrator(Pracownik):
 
         wybor = input("1.Powrót do zarządzania lisą zakupów\n2.Powrót do MENU\nWybor:")
         if (wybor == '1'):
-            adm.nadzor_nad_lista_zakupow(id_pracownika)
+            adm.nadzor_nad_lista_zakupow()
         else:
             wybieranie2(adm.id_pracownika)
 
@@ -477,6 +480,8 @@ class Administrator(Pracownik):
                     "CURRENT_DATE FROM pracownicy WHERE pensja>0"
             cursor.execute(query)
             mydb.commit()
+            print("ZAPŁACONO PENSJĘ!")
+            wybieranie2(adm.id_pracownika)
         else:
             wybieranie2(adm.id_pracownika)
 
@@ -536,7 +541,6 @@ class Administrator(Pracownik):
                 elif (wybor2 == '13'):
                     kwota=input("Wpisz kwotę, którą chcesz mu zapłacić:")
                     if(kwota!='0'):
-                        print("przenoszenie tego wszystkiego do tablicy wydatkow")
                         query = "INSERT INTO wydatki (id_pracownika,typ_wydatku,cena,data) SELECT id_pracownika, 'pensja', {}, " \
                                 "CURRENT_DATE FROM pracownicy WHERE id_pracownika ='{}' ".format(kwota,wybor)
                         cursor.execute(query)
@@ -571,7 +575,7 @@ class Administrator(Pracownik):
         wybor=input("Wybor:")
 
         if(wybor=='1'):
-            rodzaj_sortowania="data"
+            rodzaj_sortowania="data ASC"
         elif (wybor == '2'):
             rodzaj_sortowania = "data DESC"
         elif (wybor == '3'):
@@ -586,7 +590,7 @@ class Administrator(Pracownik):
                 "(SELECT nazwa FROM sprzet_lab WHERE id_sprzetu=zakupy.id_sprzetu), zakupy.ilosc, " \
                 "odbior_odpadow.ilosc_zadeklarowanych_wiaderek FROM wydatki LEFT JOIN pracownicy USING " \
                 "(id_pracownika) LEFT JOIN zakupy USING (id_zakupu) LEFT JOIN odbior_odpadow USING (id_odbioru) " \
-                "ORDER BY '{}'".format(rodzaj_sortowania)
+                "ORDER BY {}".format(rodzaj_sortowania)
         cursor.execute(query)
 
         for (id_wydatku, typ, cena,data, imie,nazwisko, zwiazek,sprzet,ilosc,wiaderka) in cursor:
@@ -653,10 +657,11 @@ def IDzwiazku():
     if (form == '1'):
         wzor = input("Wpisz wzor zwiazku: ")
         query = "SELECT id_zwiazku FROM info_o_zwiazku WHERE wzor='{}'".format(wzor)
+        cursor.execute(query)
     elif (form == '2'):
         nazwa_zwiazku = input("Wpisz nazwe zwiazku: ")
         query = "SELECT id_zwiazku FROM info_o_zwiazku WHERE nazwa_zwiazku='{}'".format(nazwa_zwiazku)
-    cursor.execute(query)
+        cursor.execute(query)
     id_zwiazku = cursor.fetchall()
     for numer in id_zwiazku:
         id_zwiazku = numer[0]
@@ -692,7 +697,7 @@ class Zwiazek_chemiczny():
                     "WHERE id_zwiazku = '{}';".format(now, uwagaZwiazku, id_zwiazku)
             cursor.execute(query)
             mydb.commit()
-        cursor.close()
+
 
     def wyswietlCeneIStan(self):
         id_zwiazku = IDzwiazku()
@@ -705,7 +710,7 @@ class Zwiazek_chemiczny():
             print("Nazwa zwiazku: ", zwiazek[0])
             print("Cena za gram: ", zwiazek[1],"zl")
             print("Obecna ilosc w magazynie: ",zwiazek[2],"g")
-        cursor.close()
+
 
 class Magazyn():
     def wyswietl_sprzet_lab(self):
@@ -719,7 +724,7 @@ class Magazyn():
             print("Obecna ilosc w magazynie: ", sprzet[1], " sztuk")
             print("Uwagi: ", sprzet[2])
             print("----")
-        cursor.close()
+
 
     def wyswietl_dostepne_zwiazki(self):
         dec = input("Wybierz ktora opcje chceszy wyswietlic:\n1. Dostepne zwazki\n"
@@ -743,7 +748,7 @@ class Magazyn():
             print("Nazwa sprzetu: ", zwiazek[0])
             print("Obecna ilosc w magazynie: ", zwiazek[1], " g")
             print("----")
-        cursor.close()
+
 
 
 class Konto():
@@ -917,6 +922,11 @@ def wybieranie2(id_pracownika):
             else:
                 worker.dodaj_do_listy_zakupow(id_pracownika)
         elif (wybor == '5'):
+            if (admin == 1):
+                przejdz_do_magazynu(adm.id_pracownika)
+            else:
+                przejdz_do_magazynu(worker.id_pracownika)
+        elif (wybor == '5'):
             przejdz_do_magazynu(admin)
         elif (wybor == '6'):
             adm.nadzor_nad_lista_zakupow()
@@ -950,7 +960,7 @@ def wybieranie2(id_pracownika):
             #wybieranie2(id_pracownika, admin)
 
 
-def przejdz_do_magazynu(admin):
+def przejdz_do_magazynu(id_pracownika):
     print("\n##### MAGAZYN #####\n1. Wyswietl informacje chemiczne\n2. Wyswietl cene i stan"
           "\n3. Wyswietl dostepny sprzet\n4. Wyswietl dostepne zwiazki\n5. Powrot do menu\n")
     wybor = input("Wybor: ")
@@ -958,21 +968,19 @@ def przejdz_do_magazynu(admin):
     zwiazek = Zwiazek_chemiczny()
     if (wybor == '1'):
         zwiazek.wyswietlInformacjeChemiczne()
-        przejdz_do_magazynu(admin)
+        przejdz_do_magazynu(id_pracownika)
     elif (wybor == '2'):
         zwiazek.wyswietlCeneIStan()
-        przejdz_do_magazynu(admin)
+        przejdz_do_magazynu(id_pracownika)
     elif (wybor == '3'):
         magazyn.wyswietl_sprzet_lab()
-        przejdz_do_magazynu(admin)
+        przejdz_do_magazynu(id_pracownika)
     elif (wybor == '4'):
         magazyn.wyswietl_dostepne_zwiazki()
-        przejdz_do_magazynu(admin)
+        przejdz_do_magazynu(id_pracownika)
     elif(wybor=='5'):
-        try:
-            wybieranie2(adm.id_pracownika)
-        except:
-            wybieranie2(worker.id_pracownika)
+      wybieranie2(id_pracownika)
+
 
 
 
